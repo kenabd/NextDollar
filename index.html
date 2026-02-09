@@ -1,0 +1,217 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Best Investment: Where Should Your Next Dollar Go?</title>
+  <meta name="description" content="Compare mortgage prepayment vs ETF, gold, silver and other investment options with conservative, moderate, and aggressive projections.">
+  <meta name="robots" content="index,follow,max-image-preview:large,max-snippet:-1,max-video-preview:-1">
+  <link rel="canonical" href="https://YOUR_USERNAME.github.io/BestInvestment/">
+  <meta property="og:type" content="website">
+  <meta property="og:title" content="Best Investment: Where Should Your Next Dollar Go?">
+  <meta property="og:description" content="Mortgage vs investing calculator with scenario projections.">
+  <meta property="og:url" content="https://YOUR_USERNAME.github.io/BestInvestment/">
+  <meta property="og:image" content="https://YOUR_USERNAME.github.io/BestInvestment/og-image.svg">
+  <meta name="twitter:card" content="summary_large_image">
+  <meta name="twitter:title" content="Best Investment: Where Should Your Next Dollar Go?">
+  <meta name="twitter:description" content="Mortgage vs investing calculator with scenario projections.">
+  <link rel="icon" href="favicon.svg" type="image/svg+xml">
+  <link rel="stylesheet" href="styles.css">
+
+  <!-- Google Analytics (set your GA4 measurement ID) -->
+  <script async src="https://www.googletagmanager.com/gtag/js?id=G-XXXXXXXXXX"></script>
+  <script>
+    window.dataLayer = window.dataLayer || [];
+    function gtag(){dataLayer.push(arguments);} // eslint-disable-line no-unused-vars
+    gtag('js', new Date());
+    gtag('config', 'G-XXXXXXXXXX');
+  </script>
+
+  <!-- Google AdSense (set your publisher ID) -->
+  <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-XXXXXXXXXXXXXXXX"
+    crossorigin="anonymous"></script>
+
+  <script type="application/ld+json">
+  {
+    "@context": "https://schema.org",
+    "@type": "WebApplication",
+    "name": "Best Investment",
+    "applicationCategory": "FinanceApplication",
+    "operatingSystem": "Any",
+    "description": "Calculator to compare mortgage prepayment and investment options for your next dollar.",
+    "url": "https://YOUR_USERNAME.github.io/BestInvestment/"
+  }
+  </script>
+</head>
+<body>
+  <button id="theme-toggle" class="theme-toggle-floating no-print" type="button" aria-label="Toggle theme">
+    <span id="theme-icon" aria-hidden="true">☀</span>
+  </button>
+  <header class="hero">
+    <div class="container">
+      <h1>Where Should Your Next Dollar Go?</h1>
+      <p>Compare mortgage paydown vs ETFs, bonds, gold, silver, and more using online historical return averages.</p>
+    </div>
+  </header>
+
+  <main class="container grid">
+    <section class="card">
+      <h2>1) Mortgage Inputs</h2>
+      <form id="calc-form">
+        <label for="balance">Current mortgage balance ($)</label>
+        <input id="balance" type="number" min="0" step="100" value="350000" required>
+
+        <label for="rate">Mortgage APR (%)</label>
+        <input id="rate" type="number" min="0" max="50" step="0.001" value="6.25" required>
+
+        <label class="inline-check"><input id="deductible" type="checkbox"> Include tax breaks from mortgage interes in calculations</label>
+
+        <div id="tax-inputs" class="hidden">
+          <label for="tax-rate">Marginal tax rate (%)</label>
+          <input id="tax-rate" type="number" min="0" max="60" step="0.1" value="24">
+
+          <label for="deductible-share">Estimated deductible share of interest (%)</label>
+          <input id="deductible-share" type="number" min="0" max="100" step="1" value="100">
+          <input id="deductible-share-slider" type="range" min="0" max="100" step="1" value="100" aria-label="Deductible share slider">
+        </div>
+
+        <label for="mode">Months left input mode</label>
+        <select id="mode">
+          <option value="months">Enter months left directly</option>
+          <option value="estimate">Estimate from start date</option>
+        </select>
+
+        <div id="months-wrap">
+          <label for="months-left">Months left</label>
+          <input id="months-left" type="number" min="1" step="1" value="300">
+        </div>
+
+        <div id="estimate-wrap" class="hidden">
+          <label for="start-date">Mortgage start date</label>
+          <input id="start-date" type="text" inputmode="numeric" placeholder="YYYY-MM" value="2023-01" list="start-month-options" pattern="^\d{4}-(0[1-9]|1[0-2])$" title="Use YYYY-MM format, for example 2023-01" autocomplete="off">
+          <datalist id="start-month-options"></datalist>
+
+          <label for="term-years">Original term (years)</label>
+          <input id="term-years" type="number" min="1" max="50" step="1" value="30">
+
+          <p id="estimated-months" class="meta"></p>
+        </div>
+
+        <label for="amount">Amount to allocate now ($)</label>
+        <input id="amount" type="number" min="1" step="1" value="1000" required>
+
+        <label class="inline-check"><input id="include-dividends" type="checkbox" checked> Include dividends in calculations (reinvested)</label>
+
+        <details class="advanced-panel">
+          <summary>Advanced Assumptions</summary>
+
+          <label for="ltcg-rate">Assumed long-term capital gains tax rate (%)</label>
+          <input id="ltcg-rate" type="number" min="0" max="40" step="0.1" value="15">
+
+          <label for="qdiv-rate">Assumed qualified dividend tax rate (%)</label>
+          <input id="qdiv-rate" type="number" min="0" max="40" step="0.1" value="15">
+
+          <label for="state-tax-rate">Assumed state tax rate on investment income (%)</label>
+          <input id="state-tax-rate" type="number" min="0" max="20" step="0.1" value="0">
+
+          <label class="inline-check"><input id="liquidate-horizon" type="checkbox" checked> Assume liquidation at horizon (apply capital gains tax at end)</label>
+
+          <label for="inflation-rate">Expected inflation (%)</label>
+          <input id="inflation-rate" type="number" min="-2" max="15" step="0.1" value="2.5">
+
+          <label for="pmi-monthly">Monthly PMI ($, optional)</label>
+          <input id="pmi-monthly" type="number" min="0" step="1" value="0">
+
+          <label for="home-value">Current home value ($, for PMI estimate)</label>
+          <input id="home-value" type="number" min="0" step="1000" value="0">
+
+          <label for="pmi-ltv">PMI removal LTV threshold (%)</label>
+          <input id="pmi-ltv" type="number" min="50" max="100" step="0.5" value="80">
+        </details>
+
+        <fieldset>
+          <legend>Priority checks</legend>
+          <label><input id="emergency" type="checkbox"> I have a 3-6 month emergency fund</label>
+          <label><input id="high-debt" type="checkbox"> I have high-interest debt (&gt;8%)</label>
+          <label><input id="match" type="checkbox"> I capture full employer retirement match</label>
+        </fieldset>
+
+        <button type="submit">Calculate</button>
+      </form>
+    </section>
+
+    <section class="card">
+      <h2>2) Results</h2>
+      <div class="actions-row no-print">
+        <button id="share-link" type="button">Copy Share Link</button>
+        <button id="export-pdf" type="button">Export PDF</button>
+      </div>
+      <p id="share-status" class="meta"></p>
+      <p id="mortgage-summary"></p>
+      <p id="tax-note" class="meta"></p>
+      <p id="mortgage-detail" class="meta"></p>
+
+      <h3>Scenario View</h3>
+      <div class="scenario-tabs" role="tablist" aria-label="Scenario tabs">
+        <button class="scenario-tab" type="button" data-scenario="conservative" role="tab" aria-selected="false">Conservative</button>
+        <button class="scenario-tab active" type="button" data-scenario="moderate" role="tab" aria-selected="true">Moderate</button>
+        <button class="scenario-tab" type="button" data-scenario="aggressive" role="tab" aria-selected="false">Aggressive</button>
+      </div>
+      <div id="scenario-results"></div>
+
+      <h3>Detailed Breakdown</h3>
+      <p id="details-note" class="meta"></p>
+      <div class="table-wrap">
+        <table id="breakdown-table">
+          <thead>
+            <tr>
+              <th>Ticker</th>
+              <th>Scenario</th>
+              <th>Annual Return Used</th>
+              <th>After-Tax Annualized</th>
+              <th>Projected (After Tax)</th>
+              <th>Vs Mortgage (After Tax)</th>
+              <th>Projected Real</th>
+              <th>Vs Mortgage Real</th>
+            </tr>
+          </thead>
+          <tbody></tbody>
+        </table>
+      </div>
+
+      <h3>Investment Return Inputs (50-Year Average Based)</h3>
+      <p class="meta" id="data-asof"></p>
+      <p class="meta" id="source-note"></p>
+      <div class="table-wrap">
+        <table id="asset-table">
+          <thead>
+            <tr>
+              <th>Ticker</th>
+              <th>Name</th>
+              <th>Dividend Yield</th>
+              <th>Conservative</th>
+              <th>Moderate</th>
+              <th>Aggressive</th>
+            </tr>
+          </thead>
+          <tbody></tbody>
+        </table>
+      </div>
+
+      <h3>3) Other Relevant Priorities</h3>
+      <ul id="priority-list"></ul>
+
+      <h3>4) Why this can change</h3>
+      <p class="meta">Tax bracket, standard-vs-itemized deduction choice, deductible interest limits, inflation, sequence-of-returns risk, and your time horizon can all change the best answer.</p>
+    </section>
+  </main>
+
+  <footer class="container footer">
+    <p>Educational use only. Not financial advice.</p>
+  </footer>
+
+  <script src="https://cdn.jsdelivr.net/npm/jspdf@2.5.1/dist/jspdf.umd.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/jspdf-autotable@3.8.2/dist/jspdf.plugin.autotable.min.js"></script>
+  <script src="app.js" defer></script>
+</body>
+</html>
