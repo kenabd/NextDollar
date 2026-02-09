@@ -47,69 +47,9 @@
       "proxy_note": "Proxy: US stocks due consistent 50-year total-return series availability in selected source."
     },
     {
-      "ticker": "IWM",
-      "name": "Russell 2000 ETF",
-      "dividend_yield": 0.014,
-      "conservative": 0.086,
-      "moderate": 0.1212,
-      "aggressive": 0.147,
-      "baseline_50y_avg": 0.1212,
-      "proxy_note": "Proxy: US small-cap stocks from Damodaran table."
-    },
-    {
-      "ticker": "DIA",
-      "name": "Dow Jones ETF",
-      "dividend_yield": 0.017,
-      "conservative": 0.0845,
-      "moderate": 0.1192,
-      "aggressive": 0.1446,
-      "baseline_50y_avg": 0.1192,
-      "proxy_note": "Proxy: US large-cap stocks (S&P 500 total return proxy)."
-    },
-    {
-      "ticker": "VUG",
-      "name": "US Growth ETF",
-      "dividend_yield": 0.007,
-      "conservative": 0.086,
-      "moderate": 0.1212,
-      "aggressive": 0.147,
-      "baseline_50y_avg": 0.1212,
-      "proxy_note": "Proxy: US small-cap/growth-heavy long-horizon return proxy."
-    },
-    {
-      "ticker": "VTV",
-      "name": "US Value ETF",
-      "dividend_yield": 0.022,
-      "conservative": 0.0845,
-      "moderate": 0.1192,
-      "aggressive": 0.1446,
-      "baseline_50y_avg": 0.1192,
-      "proxy_note": "Proxy: US broad large-cap total return series."
-    },
-    {
-      "ticker": "XLK",
-      "name": "Technology Sector ETF",
-      "dividend_yield": 0.008,
-      "conservative": 0.086,
-      "moderate": 0.1212,
-      "aggressive": 0.147,
-      "baseline_50y_avg": 0.1212,
-      "proxy_note": "Proxy: US growth-heavy equity return series."
-    },
-    {
       "ticker": "BND",
       "name": "US Aggregate Bond ETF",
       "dividend_yield": 0.037,
-      "conservative": 0.0435,
-      "moderate": 0.0614,
-      "aggressive": 0.0745,
-      "baseline_50y_avg": 0.0614,
-      "proxy_note": "Proxy: US Treasury bond return series."
-    },
-    {
-      "ticker": "TLT",
-      "name": "Long-Term Treasury ETF",
-      "dividend_yield": 0.036,
       "conservative": 0.0435,
       "moderate": 0.0614,
       "aggressive": 0.0745,

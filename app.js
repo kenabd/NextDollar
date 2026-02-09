@@ -34,6 +34,11 @@ const quickResult = document.getElementById('quick-result');
 const STORAGE_KEY = 'bestinvestment.form.v2';
 const THEME_KEY = 'bestinvestment.theme.v1';
 const EPS = 1e-8;
+const MARKET_CONDITION_MULTIPLIERS = {
+  conservative: 0.71,
+  moderate: 1.0,
+  aggressive: 1.21,
+};
 const MODEL_SOURCE_LINKS = [
   'https://www.irs.gov/taxtopics/tc409',
   'https://www.irs.gov/publications/p550',
@@ -50,21 +55,15 @@ const FALLBACK_ASSETS = {
     'https://www.irs.gov/publications/p936'
   ],
   assets: [
-    { ticker: 'VTI', name: 'US Total Market ETF', conservative: 0.0845, moderate: 0.1192, aggressive: 0.1446, dividend_yield: 0.014 },
-    { ticker: 'VOO', name: 'S&P 500 ETF', conservative: 0.0845, moderate: 0.1192, aggressive: 0.1446, dividend_yield: 0.013 },
-    { ticker: 'QQQ', name: 'Nasdaq-100 ETF', conservative: 0.086, moderate: 0.1212, aggressive: 0.147, dividend_yield: 0.006 },
-    { ticker: 'VXUS', name: 'International Stocks ETF', conservative: 0.0845, moderate: 0.1192, aggressive: 0.1446, dividend_yield: 0.029 },
-    { ticker: 'IWM', name: 'Russell 2000 ETF', conservative: 0.086, moderate: 0.1212, aggressive: 0.147, dividend_yield: 0.014 },
-    { ticker: 'DIA', name: 'Dow Jones ETF', conservative: 0.0845, moderate: 0.1192, aggressive: 0.1446, dividend_yield: 0.017 },
-    { ticker: 'VUG', name: 'US Growth ETF', conservative: 0.086, moderate: 0.1212, aggressive: 0.147, dividend_yield: 0.007 },
-    { ticker: 'VTV', name: 'US Value ETF', conservative: 0.0845, moderate: 0.1192, aggressive: 0.1446, dividend_yield: 0.022 },
-    { ticker: 'XLK', name: 'Technology Sector ETF', conservative: 0.086, moderate: 0.1212, aggressive: 0.147, dividend_yield: 0.008 },
-    { ticker: 'BND', name: 'US Aggregate Bond ETF', conservative: 0.0435, moderate: 0.0614, aggressive: 0.0745, dividend_yield: 0.037 },
-    { ticker: 'TLT', name: 'Long-Term Treasury ETF', conservative: 0.0435, moderate: 0.0614, aggressive: 0.0745, dividend_yield: 0.036 },
-    { ticker: 'SCHD', name: 'Dividend Equity ETF', conservative: 0.0845, moderate: 0.1192, aggressive: 0.1446, dividend_yield: 0.034 },
-    { ticker: 'VNQ', name: 'US REIT ETF', conservative: 0.0606, moderate: 0.0854, aggressive: 0.1036, dividend_yield: 0.038 },
-    { ticker: 'GLD', name: 'Gold ETF', conservative: 0.0366, moderate: 0.0517, aggressive: 0.0626, dividend_yield: 0.0 },
-    { ticker: 'SLV', name: 'Silver ETF', conservative: 0.0366, moderate: 0.0517, aggressive: 0.0626, dividend_yield: 0.0 }
+    { ticker: 'VTI', name: 'US Total Market ETF', baseline_50y_avg: 0.1192, dividend_yield: 0.014 },
+    { ticker: 'VOO', name: 'S&P 500 ETF', baseline_50y_avg: 0.1192, dividend_yield: 0.013 },
+    { ticker: 'QQQ', name: 'Nasdaq-100 ETF', baseline_50y_avg: 0.1212, dividend_yield: 0.006 },
+    { ticker: 'VXUS', name: 'International Stocks ETF', baseline_50y_avg: 0.1192, dividend_yield: 0.029 },
+    { ticker: 'BND', name: 'US Aggregate Bond ETF', baseline_50y_avg: 0.0614, dividend_yield: 0.037 },
+    { ticker: 'SCHD', name: 'Dividend Equity ETF', baseline_50y_avg: 0.1192, dividend_yield: 0.034 },
+    { ticker: 'VNQ', name: 'US REIT ETF', baseline_50y_avg: 0.0854, dividend_yield: 0.038 },
+    { ticker: 'GLD', name: 'Gold ETF', baseline_50y_avg: 0.0517, dividend_yield: 0.0 },
+    { ticker: 'SLV', name: 'Silver ETF', baseline_50y_avg: 0.0517, dividend_yield: 0.0 }
   ]
 };
 
@@ -253,10 +252,13 @@ function mortgageEquivalent({
 }
 
 function scenarioRates(asset) {
+  const base = typeof asset.baseline_50y_avg === 'number'
+    ? asset.baseline_50y_avg
+    : (typeof asset.moderate === 'number' ? asset.moderate : 0.06);
   return {
-    conservative: Math.max(asset.conservative ?? 0, 0),
-    moderate: Math.max(asset.moderate ?? 0, 0),
-    aggressive: Math.max(asset.aggressive ?? 0, 0),
+    conservative: Math.max(base * MARKET_CONDITION_MULTIPLIERS.conservative, 0),
+    moderate: Math.max(base * MARKET_CONDITION_MULTIPLIERS.moderate, 0),
+    aggressive: Math.max(base * MARKET_CONDITION_MULTIPLIERS.aggressive, 0),
   };
 }
 

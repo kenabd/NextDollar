@@ -19,6 +19,7 @@ Static web app for deciding where to put your next dollar: mortgage prepayment v
   - Metals: `GLD` (gold), `SLV` (silver)
 - Scenario engine:
   - Conservative / Moderate / Aggressive projection rates
+  - Scenarios represent market-condition multipliers applied to the same asset list
   - Baseline uses 50-year annualized averages (highlighted in UI)
   - Optional dividend handling toggle (included/reinvested by default)
   - Baseline series are total return (dividends included); turning dividends off applies an approximate yield subtraction
