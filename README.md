@@ -12,9 +12,7 @@ Static web app for deciding where to put your next dollar: mortgage prepayment v
     - Marginal tax rate
     - Estimated deductible share of interest
   - Optional PMI modeling:
-    - Monthly PMI
-    - Home value
-    - PMI removal LTV threshold
+    - Monthly PMI (default 0, user-updated if applicable)
   - Months left, or estimate from start date + original term
 - Investment options:
   - Common ETFs: `VTI`, `VOO`, `QQQ`, `VXUS`, `BND`, `SCHD`, `VNQ`

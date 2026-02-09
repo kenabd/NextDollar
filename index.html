@@ -45,7 +45,7 @@
 </head>
 <body>
   <button id="theme-toggle" class="theme-toggle-floating no-print" type="button" aria-label="Toggle theme">
-    <span id="theme-icon" aria-hidden="true">☀</span>
+    <span id="theme-icon" aria-hidden="true">&#9728;</span>
   </button>
   <header class="hero">
     <div class="container">
@@ -64,46 +64,50 @@
         <label for="rate">Mortgage APR (%)</label>
         <input id="rate" type="number" min="0" max="50" step="0.001" value="6.25" required>
 
-        <label class="inline-check"><input id="deductible" type="checkbox"> Include tax breaks from mortgage interes in calculations</label>
-
-        <div id="tax-inputs" class="hidden">
-          <label for="tax-rate">Marginal tax rate (%)</label>
-          <input id="tax-rate" type="number" min="0" max="60" step="0.1" value="24">
-
-          <label for="deductible-share">Estimated deductible share of interest (%)</label>
-          <input id="deductible-share" type="number" min="0" max="100" step="1" value="100">
-          <input id="deductible-share-slider" type="range" min="0" max="100" step="1" value="100" aria-label="Deductible share slider">
-        </div>
-
-        <label for="mode">Months left input mode</label>
-        <select id="mode">
-          <option value="months">Enter months left directly</option>
-          <option value="estimate">Estimate from start date</option>
-        </select>
-
         <div id="months-wrap">
           <label for="months-left">Months left</label>
           <input id="months-left" type="number" min="1" step="1" value="300">
         </div>
 
-        <div id="estimate-wrap" class="hidden">
-          <label for="start-date">Mortgage start date</label>
-          <input id="start-date" type="text" inputmode="numeric" placeholder="YYYY-MM" value="2023-01" list="start-month-options" pattern="^\d{4}-(0[1-9]|1[0-2])$" title="Use YYYY-MM format, for example 2023-01" autocomplete="off">
-          <datalist id="start-month-options"></datalist>
-
-          <label for="term-years">Original term (years)</label>
-          <input id="term-years" type="number" min="1" max="50" step="1" value="30">
-
-          <p id="estimated-months" class="meta"></p>
-        </div>
-
         <label for="amount">Amount to allocate now ($)</label>
-        <input id="amount" type="number" min="1" step="1" value="1000" required>
+        <input id="amount" type="number" min="1" step="1" value="1000">
+
+        <label for="cashout-goal">Stock cash-out goal at mortgage end ($, optional)</label>
+        <input id="cashout-goal" type="number" min="0" step="100" value="">
 
         <label class="inline-check"><input id="include-dividends" type="checkbox" checked> Include dividends in calculations (reinvested)</label>
+        <p class="meta">Quick mode uses smart defaults. Open advanced assumptions only if you want to fine-tune.</p>
 
         <details class="advanced-panel">
           <summary>Advanced Assumptions</summary>
+
+          <label class="inline-check"><input id="deductible" type="checkbox"> Include tax breaks from mortgage interes in calculations</label>
+
+          <div id="tax-inputs" class="hidden">
+            <label for="tax-rate">Marginal tax rate (%)</label>
+            <input id="tax-rate" type="number" min="0" max="60" step="0.1" value="24">
+
+            <label for="deductible-share">Estimated deductible share of interest (%)</label>
+            <input id="deductible-share" type="number" min="0" max="100" step="1" value="100">
+            <input id="deductible-share-slider" type="range" min="0" max="100" step="1" value="100" aria-label="Deductible share slider">
+          </div>
+
+          <label for="mode">Months left input mode</label>
+          <select id="mode">
+            <option value="months">Enter months left directly</option>
+            <option value="estimate">Estimate from start date</option>
+          </select>
+
+          <div id="estimate-wrap" class="hidden">
+            <label for="start-date">Mortgage start date</label>
+            <input id="start-date" type="text" inputmode="numeric" placeholder="YYYY-MM" value="2023-01" list="start-month-options" pattern="^\d{4}-(0[1-9]|1[0-2])$" title="Use YYYY-MM format, for example 2023-01" autocomplete="off">
+            <datalist id="start-month-options"></datalist>
+
+            <label for="term-years">Original term (years)</label>
+            <input id="term-years" type="number" min="1" max="50" step="1" value="30">
+
+            <p id="estimated-months" class="meta"></p>
+          </div>
 
           <label for="ltcg-rate">Assumed long-term capital gains tax rate (%)</label>
           <input id="ltcg-rate" type="number" min="0" max="40" step="0.1" value="15">
@@ -119,22 +123,16 @@
           <label for="inflation-rate">Expected inflation (%)</label>
           <input id="inflation-rate" type="number" min="-2" max="15" step="0.1" value="2.5">
 
-          <label for="pmi-monthly">Monthly PMI ($, optional)</label>
+          <label for="pmi-monthly">Monthly PMI ($, default 0; update only if needed)</label>
           <input id="pmi-monthly" type="number" min="0" step="1" value="0">
 
-          <label for="home-value">Current home value ($, for PMI estimate)</label>
-          <input id="home-value" type="number" min="0" step="1000" value="0">
-
-          <label for="pmi-ltv">PMI removal LTV threshold (%)</label>
-          <input id="pmi-ltv" type="number" min="50" max="100" step="0.5" value="80">
+          <fieldset>
+            <legend>Priority checks (optional)</legend>
+            <label><input id="emergency" type="checkbox"> I have a 3-6 month emergency fund</label>
+            <label><input id="high-debt" type="checkbox"> I have high-interest debt (&gt;8%)</label>
+            <label><input id="match" type="checkbox"> I capture full employer retirement match</label>
+          </fieldset>
         </details>
-
-        <fieldset>
-          <legend>Priority checks</legend>
-          <label><input id="emergency" type="checkbox"> I have a 3-6 month emergency fund</label>
-          <label><input id="high-debt" type="checkbox"> I have high-interest debt (&gt;8%)</label>
-          <label><input id="match" type="checkbox"> I capture full employer retirement match</label>
-        </fieldset>
 
         <button type="submit">Calculate</button>
       </form>
@@ -147,6 +145,7 @@
         <button id="export-pdf" type="button">Export PDF</button>
       </div>
       <p id="share-status" class="meta"></p>
+      <p id="quick-result" class="quick-result"></p>
       <p id="mortgage-summary"></p>
       <p id="tax-note" class="meta"></p>
       <p id="mortgage-detail" class="meta"></p>
@@ -159,50 +158,54 @@
       </div>
       <div id="scenario-results"></div>
 
-      <h3>Detailed Breakdown</h3>
-      <p id="details-note" class="meta"></p>
-      <div class="table-wrap">
-        <table id="breakdown-table">
-          <thead>
-            <tr>
-              <th>Ticker</th>
-              <th>Scenario</th>
-              <th>Annual Return Used</th>
-              <th>After-Tax Annualized</th>
-              <th>Projected (After Tax)</th>
-              <th>Vs Mortgage (After Tax)</th>
-              <th>Projected Real</th>
-              <th>Vs Mortgage Real</th>
-            </tr>
-          </thead>
-          <tbody></tbody>
-        </table>
-      </div>
+      <details class="advanced-panel">
+        <summary>Detailed Breakdown & Assumptions</summary>
+        <div class="table-wrap">
+          <table id="breakdown-table">
+            <thead>
+              <tr>
+                <th>Ticker</th>
+                <th>Annual Return Used</th>
+                <th>After-Tax Annualized</th>
+                <th>Projected (After Tax)</th>
+                <th>Vs Mortgage (After Tax)</th>
+                <th>Projected Real</th>
+                <th>Vs Mortgage Real</th>
+              </tr>
+            </thead>
+            <tbody></tbody>
+          </table>
+        </div>
+        <p id="details-note" class="meta"></p>
+      </details>
 
-      <h3>Investment Return Inputs (50-Year Average Based)</h3>
-      <p class="meta" id="data-asof"></p>
-      <p class="meta" id="source-note"></p>
-      <div class="table-wrap">
-        <table id="asset-table">
-          <thead>
-            <tr>
-              <th>Ticker</th>
-              <th>Name</th>
-              <th>Dividend Yield</th>
-              <th>Conservative</th>
-              <th>Moderate</th>
-              <th>Aggressive</th>
-            </tr>
-          </thead>
-          <tbody></tbody>
-        </table>
-      </div>
+      <details class="advanced-panel">
+        <summary>Data Sources, Inputs & Priorities</summary>
+        <h3>Investment Return Inputs (50-Year Average Based)</h3>
+        <p class="meta" id="data-asof"></p>
+        <p class="meta" id="source-note"></p>
+        <div class="table-wrap">
+          <table id="asset-table">
+            <thead>
+              <tr>
+                <th>Ticker</th>
+                <th>Name</th>
+                <th>Dividend Yield</th>
+                <th>Conservative</th>
+                <th>Moderate</th>
+                <th>Aggressive</th>
+              </tr>
+            </thead>
+            <tbody></tbody>
+          </table>
+        </div>
 
-      <h3>3) Other Relevant Priorities</h3>
-      <ul id="priority-list"></ul>
+        <h3>Other Relevant Priorities</h3>
+        <ul id="priority-list"></ul>
 
-      <h3>4) Why this can change</h3>
-      <p class="meta">Tax bracket, standard-vs-itemized deduction choice, deductible interest limits, inflation, sequence-of-returns risk, and your time horizon can all change the best answer.</p>
+        <h3>Why this can change</h3>
+        <p class="meta">Tax bracket, standard-vs-itemized deduction choice, deductible interest limits, inflation, sequence-of-returns risk, and your time horizon can all change the best answer.</p>
+      </details>
     </section>
   </main>
 
@@ -215,3 +218,4 @@
   <script src="app.js" defer></script>
 </body>
 </html>
+

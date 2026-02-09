@@ -27,6 +27,7 @@ body {
   font-family: "Segoe UI", Tahoma, Geneva, Verdana, sans-serif;
   color: var(--text);
   background: radial-gradient(circle at top left, #eaf3ff 0%, var(--bg) 35%, #eef8f6 100%);
+  overflow-x: hidden;
 }
 
 [data-theme="dark"] body {
@@ -224,6 +225,16 @@ input, select, table, fieldset {
   margin: 0 0 0.4rem;
 }
 
+.scenario-box ol,
+.scenario-box li,
+.quick-result,
+.meta,
+td,
+th {
+  overflow-wrap: anywhere;
+  word-break: break-word;
+}
+
 .scenario-tabs {
   display: flex;
   gap: 0.5rem;
@@ -253,6 +264,18 @@ input, select, table, fieldset {
 
 .actions-row button {
   width: auto;
+}
+
+.quick-result {
+  border: 1px solid var(--border);
+  background: rgba(10, 147, 150, 0.1);
+  border-radius: 8px;
+  padding: 0.55rem 0.65rem;
+  font-weight: 600;
+}
+
+.advanced-panel {
+  margin-top: 0.7rem;
 }
 
 .footer {
@@ -287,6 +310,12 @@ input, select, table, fieldset {
     padding: 1.2rem 0 0.8rem;
   }
 
+  .hero h1 {
+    font-size: 2rem;
+    line-height: 1.15;
+    padding-right: 2.3rem;
+  }
+
   .grid {
     grid-template-columns: 1fr;
     gap: 0.8rem;
@@ -306,13 +335,29 @@ input, select, table, fieldset {
 
   th,
   td {
-    font-size: 0.86rem;
-    padding: 0.45rem;
+    font-size: 0.82rem;
+    padding: 0.4rem;
   }
 
   .actions-row button,
   .scenario-tab {
     flex: 1 1 auto;
     text-align: center;
+  }
+
+  .quick-result {
+    font-size: 0.92rem;
+  }
+
+  .scenario-box ol {
+    margin: 0.25rem 0 0;
+    padding-left: 1rem;
+  }
+
+  .theme-toggle-floating {
+    top: 8px;
+    right: 8px;
+    width: 34px;
+    height: 34px;
   }
 }
