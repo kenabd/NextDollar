@@ -54,7 +54,13 @@ const FALLBACK_ASSETS = {
     { ticker: 'VOO', name: 'S&P 500 ETF', conservative: 0.0845, moderate: 0.1192, aggressive: 0.1446, dividend_yield: 0.013 },
     { ticker: 'QQQ', name: 'Nasdaq-100 ETF', conservative: 0.086, moderate: 0.1212, aggressive: 0.147, dividend_yield: 0.006 },
     { ticker: 'VXUS', name: 'International Stocks ETF', conservative: 0.0845, moderate: 0.1192, aggressive: 0.1446, dividend_yield: 0.029 },
+    { ticker: 'IWM', name: 'Russell 2000 ETF', conservative: 0.086, moderate: 0.1212, aggressive: 0.147, dividend_yield: 0.014 },
+    { ticker: 'DIA', name: 'Dow Jones ETF', conservative: 0.0845, moderate: 0.1192, aggressive: 0.1446, dividend_yield: 0.017 },
+    { ticker: 'VUG', name: 'US Growth ETF', conservative: 0.086, moderate: 0.1212, aggressive: 0.147, dividend_yield: 0.007 },
+    { ticker: 'VTV', name: 'US Value ETF', conservative: 0.0845, moderate: 0.1192, aggressive: 0.1446, dividend_yield: 0.022 },
+    { ticker: 'XLK', name: 'Technology Sector ETF', conservative: 0.086, moderate: 0.1212, aggressive: 0.147, dividend_yield: 0.008 },
     { ticker: 'BND', name: 'US Aggregate Bond ETF', conservative: 0.0435, moderate: 0.0614, aggressive: 0.0745, dividend_yield: 0.037 },
+    { ticker: 'TLT', name: 'Long-Term Treasury ETF', conservative: 0.0435, moderate: 0.0614, aggressive: 0.0745, dividend_yield: 0.036 },
     { ticker: 'SCHD', name: 'Dividend Equity ETF', conservative: 0.0845, moderate: 0.1192, aggressive: 0.1446, dividend_yield: 0.034 },
     { ticker: 'VNQ', name: 'US REIT ETF', conservative: 0.0606, moderate: 0.0854, aggressive: 0.1036, dividend_yield: 0.038 },
     { ticker: 'GLD', name: 'Gold ETF', conservative: 0.0366, moderate: 0.0517, aggressive: 0.0626, dividend_yield: 0.0 },
@@ -505,7 +511,7 @@ function renderScenarioSummary(rows, scenario) {
   const top = rows
     .filter((r) => r.scenario === scenario)
     .sort((a, b) => b.deltaAfterTax - a.deltaAfterTax)
-    .slice(0, 3);
+    .slice(0, 5);
 
   const title = scenario.charAt(0).toUpperCase() + scenario.slice(1);
   const items = top
