@@ -73,7 +73,14 @@ body {
 }
 
 .hero {
+  position: relative;
+  overflow: hidden;
   padding: 2rem 0 1.2rem;
+}
+
+.hero .container {
+  position: relative;
+  z-index: 2;
 }
 
 .hero h1 {
@@ -84,6 +91,123 @@ body {
 .hero p {
   margin-top: 0.6rem;
   color: var(--muted);
+}
+
+.hero-sub {
+  font-size: 0.92rem;
+}
+
+.hero-art {
+  position: absolute;
+  inset: 0;
+  z-index: 1;
+  pointer-events: none;
+}
+
+.hero-icon {
+  position: absolute;
+  border: 1px solid color-mix(in srgb, var(--accent-2) 45%, var(--border) 55%);
+  border-radius: 16px;
+  background: color-mix(in srgb, var(--accent) 12%, transparent 88%);
+  box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.04);
+  animation: floaty 9s ease-in-out infinite;
+  opacity: 0.35;
+}
+
+.hero-icon::before,
+.hero-icon::after {
+  content: "";
+  position: absolute;
+}
+
+.hero-icon.house {
+  width: 106px;
+  height: 84px;
+  top: 10px;
+  right: 42px;
+  animation-delay: -1.4s;
+}
+
+.hero-icon.house::before {
+  left: 26px;
+  top: 30px;
+  width: 54px;
+  height: 32px;
+  border: 2px solid color-mix(in srgb, var(--accent-2) 60%, white 40%);
+  border-top: none;
+  border-radius: 3px;
+}
+
+.hero-icon.house::after {
+  left: 21px;
+  top: 16px;
+  width: 64px;
+  height: 24px;
+  border-top: 2px solid color-mix(in srgb, var(--accent-2) 70%, white 30%);
+  border-left: 2px solid color-mix(in srgb, var(--accent-2) 70%, white 30%);
+  transform: skew(-35deg);
+}
+
+.hero-icon.chart {
+  width: 122px;
+  height: 86px;
+  bottom: 8px;
+  right: 196px;
+  animation-delay: -3.2s;
+}
+
+.hero-icon.chart::before {
+  left: 18px;
+  bottom: 16px;
+  width: 86px;
+  height: 46px;
+  background:
+    linear-gradient(to top, color-mix(in srgb, var(--accent-2) 72%, white 28%) 0 100%) left 6px bottom 0 / 9px 28px no-repeat,
+    linear-gradient(to top, color-mix(in srgb, var(--accent-2) 72%, white 28%) 0 100%) left 26px bottom 0 / 9px 35px no-repeat,
+    linear-gradient(to top, color-mix(in srgb, var(--accent-2) 72%, white 28%) 0 100%) left 46px bottom 0 / 9px 18px no-repeat,
+    linear-gradient(to top, color-mix(in srgb, var(--accent-2) 72%, white 28%) 0 100%) left 66px bottom 0 / 9px 42px no-repeat;
+}
+
+.hero-icon.chart::after {
+  left: 18px;
+  top: 19px;
+  width: 84px;
+  height: 36px;
+  border-top: 2px solid color-mix(in srgb, var(--accent) 75%, white 25%);
+  border-right: 2px solid color-mix(in srgb, var(--accent) 75%, white 25%);
+  transform: skew(-30deg);
+}
+
+.hero-icon.coin {
+  width: 74px;
+  height: 74px;
+  top: 28px;
+  right: 290px;
+  border-radius: 999px;
+  animation-delay: -5.1s;
+}
+
+.hero-icon.coin::before {
+  inset: 13px;
+  border-radius: 999px;
+  border: 2px solid color-mix(in srgb, var(--accent-2) 70%, white 30%);
+}
+
+.hero-icon.coin::after {
+  width: 18px;
+  height: 2px;
+  left: 28px;
+  top: 36px;
+  background: color-mix(in srgb, var(--accent-2) 70%, white 30%);
+}
+
+@keyframes floaty {
+  0%, 100% {
+    transform: translateY(0px);
+  }
+  50% {
+    transform: translateY(-6px);
+  }
 }
 
 .grid {
@@ -100,6 +224,13 @@ body {
   border-radius: 14px;
   padding: 1rem;
   box-shadow: 0 8px 24px rgba(17, 34, 64, 0.06);
+  transition: transform 180ms ease, border-color 180ms ease, box-shadow 180ms ease;
+}
+
+.card:hover {
+  transform: translateY(-2px);
+  border-color: color-mix(in srgb, var(--accent-2) 38%, var(--border) 62%);
+  box-shadow: 0 10px 28px rgba(17, 34, 64, 0.1);
 }
 
 h2, h3 {
@@ -121,6 +252,14 @@ input, select, button {
   border: 1px solid var(--border);
   font-size: 1rem;
   padding: 0.55rem 0.65rem;
+}
+
+input:focus,
+select:focus,
+button:focus {
+  outline: none;
+  border-color: color-mix(in srgb, var(--accent-2) 70%, var(--border) 30%);
+  box-shadow: 0 0 0 2px color-mix(in srgb, var(--accent-2) 28%, transparent 72%);
 }
 
 input[type="range"] {
@@ -450,6 +589,32 @@ input, select, table, fieldset {
     padding-right: 2.3rem;
   }
 
+  .hero-sub {
+    font-size: 0.84rem;
+    margin-top: 0.45rem;
+  }
+
+  .hero-icon.house {
+    width: 82px;
+    height: 66px;
+    right: 22px;
+    top: 8px;
+  }
+
+  .hero-icon.chart {
+    width: 90px;
+    height: 64px;
+    right: 122px;
+    bottom: 4px;
+  }
+
+  .hero-icon.coin {
+    width: 58px;
+    height: 58px;
+    right: 212px;
+    top: 20px;
+  }
+
   .grid {
     grid-template-columns: 1fr;
     gap: 0.8rem;
@@ -458,6 +623,10 @@ input, select, table, fieldset {
   .card {
     padding: 0.8rem;
     border-radius: 12px;
+  }
+
+  .card:hover {
+    transform: none;
   }
 
   input,

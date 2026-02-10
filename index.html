@@ -48,9 +48,15 @@
     <span id="theme-icon" aria-hidden="true">&#9728;</span>
   </button>
   <header class="hero">
+    <div class="hero-art" aria-hidden="true">
+      <span class="hero-icon house"></span>
+      <span class="hero-icon chart"></span>
+      <span class="hero-icon coin"></span>
+    </div>
     <div class="container">
       <h1>Where Should Your Next Dollar Go?</h1>
       <p>Compare mortgage paydown vs ETFs, bonds, gold, silver, and more using online historical return averages.</p>
+      <p class="hero-sub">Results update automatically while you type.</p>
     </div>
   </header>
 
@@ -72,7 +78,7 @@
         <label for="amount">Amount to allocate now ($)</label>
         <input id="amount" type="number" min="1" step="1" value="1000">
 
-        <label for="investment-years">Investment duration (years)</label>
+        <label for="investment-years">How many years until you compare outcomes?</label>
         <input id="investment-years" type="number" min="1" max="50" step="0.5" value="5">
 
         <label class="inline-check"><input id="include-dividends" type="checkbox" checked> Include dividends in calculations (reinvested)</label>
@@ -81,7 +87,8 @@
         <details class="advanced-panel">
           <summary>Advanced Assumptions</summary>
 
-          <label class="inline-check"><input id="deductible" type="checkbox" checked> Apply mortgage interest tax deduction</label>
+          <label class="inline-check"><input id="deductible" type="checkbox" checked> Include mortgage-interest tax break</label>
+          <label class="inline-check"><input id="liquidate-horizon" type="checkbox" checked> Assume you sell investments at the end date (apply capital-gains tax)</label>
           <p class="meta">Turn this off if you do not claim mortgage interest on taxes.</p>
 
           <div id="tax-inputs" class="hidden">
@@ -89,8 +96,7 @@
             <input id="tax-rate" type="number" min="0" max="60" step="0.1" value="24">
 
             <label for="deductible-share">Estimated deductible share of interest (%)</label>
-            <input id="deductible-share" type="number" min="0" max="100" step="1" value="100">
-            <input id="deductible-share-slider" type="range" min="0" max="100" step="1" value="100" aria-label="Deductible share slider">
+            <input id="deductible-share" type="number" min="0" max="100" step="0.1" value="100">
           </div>
 
           <label for="mode">How to enter months left</label>
@@ -119,8 +125,6 @@
           <label for="state-tax-rate">State tax on investments (%)</label>
           <input id="state-tax-rate" type="number" min="0" max="20" step="0.1" value="0">
 
-          <label class="inline-check"><input id="liquidate-horizon" type="checkbox" checked> Tax gains when selling at end of horizon</label>
-
           <label for="inflation-rate">Inflation (%)</label>
           <input id="inflation-rate" type="number" min="-2" max="15" step="0.1" value="2.5">
 
@@ -135,7 +139,7 @@
           </fieldset>
         </details>
 
-        <button type="submit">Calculate</button>
+        <button type="submit">Calculate Now</button>
       </form>
     </section>
 

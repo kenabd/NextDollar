@@ -13,7 +13,6 @@ const termYearsInput = document.getElementById('term-years');
 const estimatedMonthsText = document.getElementById('estimated-months');
 const investmentYearsInput = document.getElementById('investment-years');
 const deductibleShareInput = document.getElementById('deductible-share');
-const deductibleShareSlider = document.getElementById('deductible-share-slider');
 
 const mortgageSummary = document.getElementById('mortgage-summary');
 const taxNote = document.getElementById('tax-note');
@@ -86,6 +85,7 @@ let latestTaxShieldRate = 0;
 let showAllScenarioOptions = false;
 let marketConditionMultipliers = { ...DEFAULT_MARKET_CONDITION_MULTIPLIERS };
 let compactScenarioView = window.matchMedia('(max-width: 700px)').matches;
+let autoCalcTimer = null;
 
 function formatPct(x) {
   return `${(x * 100).toFixed(2)}%`;
@@ -114,6 +114,12 @@ function titleCase(word) {
 function formatYears(x) {
   const rounded = Math.round(x * 10) / 10;
   return Number.isInteger(rounded) ? `${rounded.toFixed(0)} years` : `${rounded.toFixed(1)} years`;
+}
+
+function formatInputPercent(value, digits = 3) {
+  const n = Number(value);
+  if (Number.isNaN(n)) return 'N/A';
+  return `${n.toFixed(digits).replace(/\.?0+$/, '')}%`;
 }
 
 function buildQuickPoints(items) {
@@ -627,9 +633,13 @@ function renderQuickResult(rows, scenario) {
     quickResult.textContent = `${scenarioLabel} result: mortgage prepayment wins.`;
   }
 
+  const horizonYearsLabel = latestReport ? formatYears(latestReport.inputs.investmentYears) : 'selected horizon';
+  const fullTermYearsLabel = latestReport ? formatYears(latestReport.mortgage.fullTermYears) : 'loan term';
+  const fullTermMortgageValue = latestReport ? latestReport.mortgage.fullTermFutureValue : latestMortgageNominal;
   const quickLines = [
-    `Mortgage path by horizon: ${formatMoneyRounded(latestMortgageNominal)}.`,
-    `${best.ticker} path by horizon: ${formatMoneyRounded(best.projectedAfterTax)}.`,
+    `If you use this money to prepay the mortgage now, expected value by ${horizonYearsLabel}: ${formatMoneyRounded(latestMortgageNominal)}.`,
+    `Same prepay over full remaining loan term (${fullTermYearsLabel}): ${formatMoneyRounded(fullTermMortgageValue)}.`,
+    `${best.ticker} expected after-tax value by ${horizonYearsLabel}: ${formatMoneyRounded(best.projectedAfterTax)}.`,
     best.deltaAfterTax >= 0
       ? `${best.ticker} is ahead by ${formatMoneyRounded(best.deltaAfterTax)}.`
       : `Mortgage is ahead by ${formatMoneyRounded(Math.abs(best.deltaAfterTax))}.`,
@@ -639,6 +649,8 @@ function renderQuickResult(rows, scenario) {
     latestReport && latestReport.mortgage.monthsSaved > 0
       ? `Mortgage would be paid off about ${latestReport.mortgage.monthsSaved} months sooner with prepay.`
       : 'No meaningful mortgage payoff acceleration from this prepay amount.',
+    'Liquidity: ETFs can be sold for cash; mortgage prepay usually becomes usable cash only when you refinance, sell, or finish payoff.',
+    'Tax timing: this model uses long-term capital gains tax rates; short-term selling can be taxed more.',
   ];
   if (latestMortgageHurdleAnnual != null) {
     quickLines.push(`Break-even annual return to beat mortgage: ${formatPct(latestMortgageHurdleAnnual)}.`);
@@ -681,16 +693,9 @@ function handleViewportResize() {
   }
 }
 
-function syncDeductibleShareFromNumber() {
+function normalizeDeductibleShare() {
   const clamped = clampPercent(deductibleShareInput.value);
   deductibleShareInput.value = String(clamped);
-  deductibleShareSlider.value = String(clamped);
-}
-
-function syncDeductibleShareFromSlider() {
-  const clamped = clampPercent(deductibleShareSlider.value);
-  deductibleShareInput.value = String(clamped);
-  deductibleShareSlider.value = String(clamped);
 }
 
 function updateModeVisibility() {
@@ -709,10 +714,17 @@ function updateModeVisibility() {
 function updateTaxVisibility() {
   if (deductibleInput.checked) {
     taxInputsWrap.classList.remove('hidden');
-    syncDeductibleShareFromNumber();
+    normalizeDeductibleShare();
     return;
   }
   taxInputsWrap.classList.add('hidden');
+}
+
+function scheduleAutoCalculate() {
+  if (autoCalcTimer) clearTimeout(autoCalcTimer);
+  autoCalcTimer = setTimeout(() => {
+    runCalculation(null, { showValidation: false });
+  }, 260);
 }
 
 function buildMonthSuggestions() {
@@ -837,7 +849,8 @@ function handleExportPdf() {
 
   section('Executive Summary');
   bullet(`Best choice in ${scenarioLabel}: ${winnerLabel}.`);
-  bullet(`Mortgage path value at horizon: ${fmtMoneyRoundedLocal(latestReport.mortgage.futureValue)}.`);
+  bullet(`If you prepay now, estimated mortgage benefit by ${formatYears(latestReport.inputs.investmentYears)}: ${fmtMoneyRoundedLocal(latestReport.mortgage.futureValue)} (after tax/PMI effects).`);
+  bullet(`Same prepay over the full remaining loan term (${formatYears(latestReport.mortgage.fullTermYears)}): ${fmtMoneyRoundedLocal(latestReport.mortgage.fullTermFutureValue)}.`);
   bullet(`${best.ticker} value at horizon: ${fmtMoneyRoundedLocal(best.projectedAfterTax)}.`);
   bullet(`${investWins ? best.ticker : 'Mortgage'} leads by ${fmtMoneyRoundedLocal(Math.abs(best.deltaAfterTax))} after tax.`);
   bullet(`Estimated mortgage payoff acceleration from prepay: ${latestReport.mortgage.monthsSaved} months.`);
@@ -845,6 +858,7 @@ function handleExportPdf() {
     ? `Mortgage-interest tax break is included (effective shield: ${fmtPct(latestReport.assumptions.taxShieldRate)}).`
     : 'Mortgage-interest tax break is not included in this run.');
   bullet(`Break-even annual return to match mortgage: ${fmtPct(latestReport.mortgage.hurdleAfterTaxAnnual)}.`);
+  bullet('Liquidity note: ETF proceeds are typically accessible when sold; mortgage prepay value is mostly locked as home equity until refinance, sale, or payoff.');
 
   section('What You Entered');
   doc.autoTable({
@@ -853,8 +867,13 @@ function handleExportPdf() {
     head: [['Input', 'Value']],
     body: [
       ['Mortgage balance', fmtMoneyRoundedLocal(latestReport.inputs.balance)],
-      ['Mortgage APR', fmtPct(latestReport.inputs.apr)],
-      ['Months left', String(latestReport.inputs.monthsLeft)],
+      ['Mortgage APR', formatInputPercent(
+        latestReport.inputs.aprInputRaw != null
+          ? latestReport.inputs.aprInputRaw
+          : latestReport.inputs.apr * 100,
+        3,
+      )],
+      ['Months left on loan', `${latestReport.inputs.monthsLeft} months (${formatYears(latestReport.inputs.monthsLeft / 12)})`],
       ['Investment duration', formatYears(latestReport.inputs.investmentYears)],
       ['Amount to allocate now', fmtMoneyRoundedLocal(latestReport.inputs.amount)],
       ['Mortgage-interest tax break', latestReport.inputs.deductible ? `Included (${fmtPct(latestReport.assumptions.taxShieldRate)} effective)` : 'Not included'],
@@ -918,6 +937,7 @@ function handleExportPdf() {
   bullet('Mortgage comparison uses month-by-month amortization, including changing interest/principal mix and earlier payoff effects.');
   bullet('Mortgage-interest tax deduction is included when enabled.');
   bullet('Investment results include taxes from your selected tax rates and optional end-of-horizon sale tax.');
+  bullet('This model uses long-term capital gains rates; short-term selling can be taxed at higher ordinary-income rates.');
   bullet('Inflation is used to show real (purchasing-power adjusted) values.');
   bullet('Educational use only; not financial advice.');
 
@@ -925,12 +945,14 @@ function handleExportPdf() {
   shareStatus.textContent = 'Detailed analysis PDF downloaded.';
 }
 
-function runCalculation(evt) {
-  evt.preventDefault();
+function runCalculation(evt, options = {}) {
+  if (evt && typeof evt.preventDefault === 'function') evt.preventDefault();
+  const { showValidation = true } = options;
   shareStatus.textContent = '';
 
   const balance = Number(document.getElementById('balance').value);
-  const apr = Number(document.getElementById('rate').value) / 100;
+  const aprInputRaw = document.getElementById('rate').value;
+  const apr = Number(aprInputRaw) / 100;
   const deductible = document.getElementById('deductible').checked;
   const taxRate = Number(document.getElementById('tax-rate').value) / 100;
   const deductibleShare = clampPercent(deductibleShareInput.value) / 100;
@@ -970,6 +992,7 @@ function runCalculation(evt) {
   const invalidPmi = Number.isNaN(monthlyPMI) || monthlyPMI < 0;
 
   if (invalidTax || invalidCore || invalidRates || invalidInflation || invalidPmi) {
+    if (!showValidation) return;
     mortgageSummary.textContent = 'Check your inputs and try again.';
     quickResult.textContent = '';
     quickMetrics.innerHTML = '';
@@ -1007,13 +1030,16 @@ function runCalculation(evt) {
   }
 
   const mortgageReal = mortgage.futureValue / Math.pow(1 + inflationRate, years);
+  const fullTermYears = monthsLeft / 12;
+  const mortgageFullTermFutureValue = amount * Math.pow(1 + mortgage.monthlyEquivalent, monthsLeft);
+  const mortgageFullTermRealValue = mortgageFullTermFutureValue / Math.pow(1 + inflationRate, fullTermYears);
   latestMortgageNominal = mortgage.futureValue;
   latestMortgageHurdleAnnual = Math.pow(mortgage.futureValue / amount, 1 / years) - 1;
-  mortgageSummary.textContent = `If you prepay ${formatMoneyRounded(amount)} now, the model projects about ${formatMoneyRounded(mortgage.futureValue)} over ${formatYears(years)}.`;
+  mortgageSummary.textContent = `Putting ${formatMoneyRounded(amount)} toward your mortgage today is like an estimated after-tax return of ${formatMoneyRounded(mortgage.futureValue)} by ${formatYears(years)} from avoided interest/PMI. Over the full remaining loan term (${formatYears(fullTermYears)}), that same prepay is worth about ${formatMoneyRounded(mortgageFullTermFutureValue)}.`;
   taxNote.textContent = deductible
     ? `Assumed mortgage tax benefit: effective ${formatPct(taxShieldRate)} interest shield.`
     : 'No mortgage-interest tax deduction applied in this run.';
-  mortgageDetail.textContent = `Estimated interest saved: ${formatMoneyRounded(mortgage.interestSaved)}. Estimated payoff speed-up: ${Math.max(mortgage.monthsSaved, 0)} months. Inflation-adjusted mortgage path value: ${formatMoneyRounded(mortgageReal)}. This uses month-by-month amortization, so as balance drops, each payment naturally shifts from interest toward principal.`;
+  mortgageDetail.textContent = `Estimated interest saved: ${formatMoneyRounded(mortgage.interestSaved)}. Estimated payoff speed-up: ${Math.max(mortgage.monthsSaved, 0)} months. Inflation-adjusted view: ${formatMoneyRounded(mortgageReal)} by ${formatYears(years)} and ${formatMoneyRounded(mortgageFullTermRealValue)} over full term. This is modeled month-by-month, so future payments naturally shift more toward principal as balance drops.`;
 
   latestRows = [];
   assetsData.forEach((asset) => {
@@ -1050,13 +1076,14 @@ function runCalculation(evt) {
   });
 
   setActiveScenario(activeScenario);
-  detailsNote.textContent = `Assumptions used: ${includeDividends ? 'dividends are reinvested' : 'dividends are not reinvested'}, qualified dividend tax ${formatPct(combinedQdivRate)}, long-term capital gains tax ${formatPct(combinedLtcgRate)}${liquidateAtHorizon ? ' at sale' : ' not applied at sale'}, inflation ${formatPct(inflationRate)}, and horizon ${formatYears(years)}. Mortgage side is modeled month-by-month (interest + principal split each month), including earlier payoff effects from prepay. Break-even annual return vs mortgage: ${formatPct(latestMortgageHurdleAnnual)}.`;
+  detailsNote.textContent = `Model assumptions: ${includeDividends ? 'dividends reinvested' : 'no dividend reinvestment'}, dividend tax ${formatPct(combinedQdivRate)}, long-term capital-gains tax ${formatPct(combinedLtcgRate)}${liquidateAtHorizon ? ' on end-of-horizon sale' : ' not applied at horizon sale'}, inflation ${formatPct(inflationRate)}, comparison horizon ${formatYears(years)}, and full remaining loan term ${formatYears(fullTermYears)}. Mortgage path is simulated month-by-month, including earlier payoff effects. Liquidity difference: investments can be sold for cash; mortgage prepay value is mostly home equity until refinance, sale, or payoff. Break-even annual return over the first horizon: ${formatPct(latestMortgageHurdleAnnual)}.`;
 
   renderPriorities(flags);
   latestReport = {
     inputs: {
       balance,
       apr,
+      aprInputRaw,
       monthsLeft,
       investmentYears,
       amount,
@@ -1074,6 +1101,9 @@ function runCalculation(evt) {
     mortgage: {
       futureValue: mortgage.futureValue,
       realFutureValue: mortgageReal,
+      fullTermFutureValue: mortgageFullTermFutureValue,
+      fullTermRealFutureValue: mortgageFullTermRealValue,
+      fullTermYears,
       annualEquivalent: mortgage.annualEquivalent,
       hurdleAfterTaxAnnual: latestMortgageHurdleAnnual,
       interestSaved: mortgage.interestSaved,
@@ -1096,12 +1126,17 @@ async function init() {
   startDateInput.addEventListener('input', updateModeVisibility);
   startDateInput.addEventListener('blur', updateModeVisibility);
   termYearsInput.addEventListener('input', updateModeVisibility);
-  deductibleShareInput.addEventListener('input', syncDeductibleShareFromNumber);
-  deductibleShareInput.addEventListener('blur', syncDeductibleShareFromNumber);
-  deductibleShareSlider.addEventListener('input', syncDeductibleShareFromSlider);
+  deductibleShareInput.addEventListener('change', normalizeDeductibleShare);
+  deductibleShareInput.addEventListener('blur', normalizeDeductibleShare);
   form.addEventListener('submit', runCalculation);
-  form.addEventListener('input', saveFormState);
-  form.addEventListener('change', saveFormState);
+  form.addEventListener('input', () => {
+    saveFormState();
+    scheduleAutoCalculate();
+  });
+  form.addEventListener('change', () => {
+    saveFormState();
+    scheduleAutoCalculate();
+  });
   window.addEventListener('resize', handleViewportResize);
 
   restoreFormState();
@@ -1114,7 +1149,7 @@ async function init() {
   renderAssetTable();
   updateModeVisibility();
   updateTaxVisibility();
-  syncDeductibleShareFromNumber();
+  normalizeDeductibleShare();
   form.requestSubmit();
 }
 
