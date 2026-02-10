@@ -363,10 +363,30 @@ input, select, table, fieldset {
   border-radius: 8px;
   padding: 0.55rem 0.65rem;
   font-weight: 600;
+  margin-bottom: 0.45rem;
 }
 
 .quick-metrics {
-  margin: 0.45rem 0 0.2rem;
+  margin: 0 0 0.35rem;
+}
+
+.quick-points {
+  margin: 0;
+  padding-left: 1rem;
+  color: var(--muted);
+  font-size: 0.94rem;
+}
+
+.quick-points li {
+  margin: 0.18rem 0;
+}
+
+.result-explain {
+  margin-bottom: 0.7rem;
+}
+
+.result-explain p {
+  margin: 0.3rem 0;
 }
 
 .table-hint {
@@ -449,8 +469,13 @@ input, select, table, fieldset {
   }
 
   .quick-metrics {
-    font-size: 0.84rem;
+    font-size: 0.86rem;
     margin-top: 0.35rem;
+  }
+
+  .quick-points {
+    font-size: 0.87rem;
+    padding-left: 0.95rem;
   }
 
   .scenario-box-head {

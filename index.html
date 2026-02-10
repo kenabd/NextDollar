@@ -146,12 +146,15 @@
       </div>
       <p id="share-status" class="meta"></p>
       <p id="quick-result" class="quick-result"></p>
-      <p id="quick-metrics" class="meta quick-metrics"></p>
-      <p id="mortgage-summary"></p>
-      <p id="tax-note" class="meta"></p>
-      <p id="mortgage-detail" class="meta"></p>
+      <div id="quick-metrics" class="quick-metrics"></div>
+      <details class="advanced-panel result-explain">
+        <summary>Why this recommendation</summary>
+        <p id="mortgage-summary"></p>
+        <p id="tax-note" class="meta"></p>
+        <p id="mortgage-detail" class="meta"></p>
+      </details>
 
-      <h3>Scenario View</h3>
+      <h3>Top Choices</h3>
       <div class="scenario-tabs" role="tablist" aria-label="Scenario tabs">
         <button class="scenario-tab" type="button" data-scenario="conservative" role="tab" aria-selected="false">Conservative</button>
         <button class="scenario-tab active" type="button" data-scenario="moderate" role="tab" aria-selected="true">Moderate</button>
@@ -160,7 +163,7 @@
       <div id="scenario-results"></div>
 
       <details class="advanced-panel">
-        <summary>Detailed Breakdown & Assumptions</summary>
+        <summary>Advanced Details & Assumptions</summary>
         <p class="meta table-hint">On mobile, swipe the table left/right for full columns.</p>
         <div class="table-wrap">
           <table id="breakdown-table">

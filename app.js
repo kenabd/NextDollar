@@ -82,6 +82,7 @@ let activeScenario = 'moderate';
 let latestReport = null;
 let latestMortgageNominal = null;
 let latestMortgageHurdleAnnual = null;
+let hasExplicitCashoutGoal = false;
 let marketConditionMultipliers = { ...DEFAULT_MARKET_CONDITION_MULTIPLIERS };
 let compactScenarioView = window.matchMedia('(max-width: 700px)').matches;
 
@@ -91,6 +92,10 @@ function formatPct(x) {
 
 function formatMoney(x) {
   return `$${x.toFixed(2)}`;
+}
+
+function formatMoneyRounded(x) {
+  return `$${Math.round(x).toLocaleString('en-US')}`;
 }
 
 function formatSignedMoney(x) {
@@ -103,6 +108,11 @@ function clamp(value, min, max) {
 
 function titleCase(word) {
   return word.charAt(0).toUpperCase() + word.slice(1);
+}
+
+function buildQuickPoints(items) {
+  if (!items.length) return '';
+  return `<ul class="quick-points">${items.map((item) => `<li>${item}</li>`).join('')}</ul>`;
 }
 
 function clampPercent(value) {
@@ -544,7 +554,7 @@ function renderDetailedBreakdown(rows, scenario) {
 
 function renderScenarioSummary(rows, scenario) {
   const sorted = sortedRowsForScenario(rows, scenario);
-  const top = sorted.slice(0, compactScenarioView ? 3 : 5);
+  const top = sorted.slice(0, compactScenarioView ? 2 : 3);
   if (!top.length) {
     scenarioResults.innerHTML = '';
     return;
@@ -560,9 +570,11 @@ function renderScenarioSummary(rows, scenario) {
           <span class="scenario-name">${row.name}</span>
         </div>
         <div class="scenario-row-metrics">
-          <span class="scenario-chip">After-tax ${formatMoney(row.projectedAfterTax).replace('$', '')}</span>
-          <span class="scenario-chip ${row.deltaAfterTax >= 0 ? 'is-positive' : 'is-negative'}">Vs mortgage ${formatSignedMoney(row.deltaAfterTax)}</span>
-          <span class="scenario-chip ${row.goalGapAfterTax >= 0 ? 'is-positive' : 'is-negative'}">${row.goalGapAfterTax >= 0 ? 'Goal +' : 'Goal -'}${formatMoney(Math.abs(row.goalGapAfterTax)).replace('$', '')}</span>
+          <span class="scenario-chip">After tax ${formatMoneyRounded(row.projectedAfterTax)}</span>
+          <span class="scenario-chip ${row.deltaAfterTax >= 0 ? 'is-positive' : 'is-negative'}">${row.deltaAfterTax >= 0 ? 'Beats mortgage' : 'Behind mortgage'} ${formatMoneyRounded(Math.abs(row.deltaAfterTax))}</span>
+          ${hasExplicitCashoutGoal
+            ? `<span class="scenario-chip ${row.goalGapAfterTax >= 0 ? 'is-positive' : 'is-negative'}">${row.goalGapAfterTax >= 0 ? 'Goal met by' : 'Goal short by'} ${formatMoneyRounded(Math.abs(row.goalGapAfterTax))}</span>`
+            : ''}
         </div>
       </div>
     `)
@@ -572,7 +584,7 @@ function renderScenarioSummary(rows, scenario) {
     <div class="scenario-box">
       <div class="scenario-box-head">
         <h4>${title}</h4>
-        <p class="meta">Top ${top.length}/${sorted.length} by after-tax edge vs mortgage.</p>
+        <p class="meta">Top ${top.length} easiest wins to compare.</p>
       </div>
       <div class="scenario-list">${items}</div>
     </div>
@@ -582,31 +594,41 @@ function renderScenarioSummary(rows, scenario) {
 function renderQuickResult(rows, scenario) {
   if (!rows.length || latestMortgageNominal == null) {
     quickResult.textContent = '';
-    quickMetrics.textContent = '';
+    quickMetrics.innerHTML = '';
     return;
   }
   const best = sortedRowsForScenario(rows, scenario)[0];
   if (!best) {
     quickResult.textContent = '';
-    quickMetrics.textContent = '';
+    quickMetrics.innerHTML = '';
     return;
   }
 
   const scenarioLabel = titleCase(scenario);
   if (best.deltaAfterTax > 0) {
-    quickResult.textContent = `${scenarioLabel}: ${best.ticker} is currently best after tax.`;
+    quickResult.textContent = `${scenarioLabel} result: invest in ${best.ticker}.`;
   } else {
-    quickResult.textContent = `${scenarioLabel}: Mortgage prepayment is currently best after tax.`;
+    quickResult.textContent = `${scenarioLabel} result: mortgage prepayment wins.`;
   }
 
-  const vsMortgageText = best.deltaAfterTax >= 0
-    ? `${best.ticker} is ${formatSignedMoney(best.deltaAfterTax)} vs mortgage.`
-    : `${best.ticker} trails mortgage by ${formatMoney(Math.abs(best.deltaAfterTax))}.`;
-  const goalText = `${best.goalGapAfterTax >= 0 ? 'Goal hit' : 'Goal miss'} for ${best.ticker}: ${formatSignedMoney(best.goalGapAfterTax)}.`;
-  const hurdleText = latestMortgageHurdleAnnual == null
-    ? ''
-    : `Break-even after-tax annual return to match mortgage: ${formatPct(latestMortgageHurdleAnnual)}.`;
-  quickMetrics.textContent = `${vsMortgageText} ${goalText} ${hurdleText}`.trim();
+  const quickLines = [
+    `Mortgage path by horizon: ${formatMoneyRounded(latestMortgageNominal)}.`,
+    `${best.ticker} path by horizon: ${formatMoneyRounded(best.projectedAfterTax)}.`,
+    best.deltaAfterTax >= 0
+      ? `${best.ticker} is ahead by ${formatMoneyRounded(best.deltaAfterTax)}.`
+      : `Mortgage is ahead by ${formatMoneyRounded(Math.abs(best.deltaAfterTax))}.`,
+  ];
+  if (hasExplicitCashoutGoal) {
+    quickLines.push(
+      best.goalGapAfterTax >= 0
+        ? `Your cash-out target is met by ${formatMoneyRounded(best.goalGapAfterTax)}.`
+        : `Your cash-out target is short by ${formatMoneyRounded(Math.abs(best.goalGapAfterTax))}.`,
+    );
+  }
+  if (latestMortgageHurdleAnnual != null) {
+    quickLines.push(`Break-even annual return to beat mortgage: ${formatPct(latestMortgageHurdleAnnual)}.`);
+  }
+  quickMetrics.innerHTML = buildQuickPoints(quickLines);
 }
 
 function setActiveScenario(scenario) {
@@ -743,148 +765,104 @@ function handleExportPdf() {
 
   const { jsPDF } = window.jspdf;
   const doc = new jsPDF({ unit: 'pt', format: 'letter' });
-  const margin = 40;
+  const margin = 42;
   const pageWidth = doc.internal.pageSize.getWidth();
+  const pageHeight = doc.internal.pageSize.getHeight();
   const contentWidth = pageWidth - margin * 2;
-  let y = 42;
+  let y = 46;
+  const activeRows = sortedRowsForScenario(latestReport.rows, latestReport.activeScenario);
+  if (!activeRows.length) {
+    shareStatus.textContent = 'No scenario results found. Recalculate and try again.';
+    return;
+  }
+  const best = activeRows[0];
+  const scenarioLabel = titleCase(latestReport.activeScenario);
+  const investWins = best.deltaAfterTax > 0;
+  const winnerLabel = investWins ? `Invest in ${best.ticker}` : 'Pay down mortgage';
 
-  const line = (text, size = 10) => {
+  const line = (text, size = 11, weight = 'normal') => {
+    if (y > pageHeight - 56) {
+      doc.addPage();
+      y = 46;
+    }
+    doc.setFont(undefined, weight);
     doc.setFontSize(size);
     const lines = doc.splitTextToSize(text, contentWidth);
     doc.text(lines, margin, y);
-    y += lines.length * (size + 2);
+    y += lines.length * (size + 4);
   };
 
   const section = (title) => {
-    y += 8;
-    doc.setFontSize(13);
-    doc.setFont(undefined, 'bold');
-    doc.text(title, margin, y);
-    doc.setFont(undefined, 'normal');
-    y += 10;
+    y += 6;
+    line(title, 14, 'bold');
+    y += 2;
   };
 
-  const fmtPct = (v) => `${(v * 100).toFixed(2)}%`;
-  const fmtMoney = (v) => `$${Number(v).toFixed(2)}`;
-  const fmtSignedMoney = (v) => `${v >= 0 ? '+' : '-'}${fmtMoney(Math.abs(v))}`;
+  const bullet = (text) => line(`- ${text}`, 11);
+  const fmtPct = (v) => `${(v * 100).toFixed(1)}%`;
+  const fmtMoneyRoundedLocal = (v) => `$${Math.round(Number(v)).toLocaleString('en-US')}`;
 
-  doc.setFontSize(18);
-  doc.setFont(undefined, 'bold');
-  doc.text('BestInvestment Detailed Report', margin, y);
-  doc.setFont(undefined, 'normal');
-  y += 18;
-  line(`Generated: ${new Date().toLocaleString()}`, 10);
-  line(`Active Scenario Tab: ${titleCase(latestReport.activeScenario)}`, 10);
+  line('BestInvestment Simple Report', 20, 'bold');
+  line(`Generated: ${new Date().toLocaleString()} | Scenario: ${scenarioLabel}`, 10);
 
-  section('Inputs');
-  line(`Mortgage balance: ${fmtMoney(latestReport.inputs.balance)}`);
-  line(`Mortgage APR: ${fmtPct(latestReport.inputs.apr)}`);
-  line(`Months analyzed: ${latestReport.inputs.monthsLeft}`);
-  line(`Amount allocated now: ${fmtMoney(latestReport.inputs.amount)}`);
-  line(`Cash-out goal used: ${fmtMoney(latestReport.inputs.cashoutGoal)} (${latestReport.inputs.cashoutGoalDefaulted ? 'Defaulted to mortgage equivalent at horizon' : 'User entered'})`);
-  line(`Include tax breaks from mortgage interest: ${latestReport.inputs.deductible ? 'Yes' : 'No'}`);
-  line(`Include dividends (reinvested): ${latestReport.assumptions.includeDividends ? 'Yes' : 'No'}`);
-  line(`LTCG tax assumed: ${fmtPct(latestReport.assumptions.combinedLtcgRate)} | Qualified dividend tax assumed: ${fmtPct(latestReport.assumptions.combinedQdivRate)}`);
-  line(`Inflation assumed: ${fmtPct(latestReport.assumptions.inflationRate)} | Liquidation at horizon: ${latestReport.assumptions.liquidateAtHorizon ? 'Yes' : 'No'}`);
-  line(`Market-condition multipliers: Conservative x${latestReport.assumptions.marketConditionMultipliers.conservative.toFixed(2)}, Moderate x${latestReport.assumptions.marketConditionMultipliers.moderate.toFixed(2)}, Aggressive x${latestReport.assumptions.marketConditionMultipliers.aggressive.toFixed(2)}`);
+  section('Bottom Line');
+  bullet(`Best choice in ${scenarioLabel}: ${winnerLabel}.`);
+  bullet(`Mortgage path value by horizon: ${fmtMoneyRoundedLocal(latestReport.mortgage.futureValue)}.`);
+  bullet(`${best.ticker} path value by horizon: ${fmtMoneyRoundedLocal(best.projectedAfterTax)}.`);
+  bullet(`${investWins ? best.ticker : 'Mortgage'} leads by ${fmtMoneyRoundedLocal(Math.abs(best.deltaAfterTax))} after tax.`);
+  if (!latestReport.inputs.cashoutGoalDefaulted) {
+    bullet(
+      best.goalGapAfterTax >= 0
+        ? `Your cash-out target is met by ${fmtMoneyRoundedLocal(best.goalGapAfterTax)}.`
+        : `Your cash-out target is short by ${fmtMoneyRoundedLocal(Math.abs(best.goalGapAfterTax))}.`,
+    );
+  }
 
-  section('Mortgage Analysis');
-  line(`Mortgage equivalent future value (nominal): ${fmtMoney(latestReport.mortgage.futureValue)}`);
-  line(`Mortgage equivalent future value (real): ${fmtMoney(latestReport.mortgage.realFutureValue)}`);
-  line(`Annualized mortgage equivalent return: ${fmtPct(latestReport.mortgage.annualEquivalent)}`);
-  line(`Break-even after-tax annual return to match mortgage: ${fmtPct(latestReport.mortgage.hurdleAfterTaxAnnual)}`);
-  line(`Interest saved from prepayment: ${fmtMoney(latestReport.mortgage.interestSaved)}`);
-  line(`PMI saved from prepayment: ${fmtMoney(latestReport.mortgage.pmiSaved)}`);
-  line(`Estimated payoff acceleration: ${latestReport.mortgage.monthsSaved} months`);
-
-  const scenarioWinners = ['conservative', 'moderate', 'aggressive'].map((scenario) => {
-    const best = sortedRowsForScenario(latestReport.rows, scenario)[0];
-    if (!best) return null;
-    return {
-      scenario,
-      action: best.deltaAfterTax > 0 ? `Invest (${best.ticker})` : 'Mortgage prepay',
-      ticker: best.ticker,
-      deltaAfterTax: best.deltaAfterTax,
-      goalGapAfterTax: best.goalGapAfterTax,
-      goalStatus: best.goalGapAfterTax >= 0 ? 'Hit' : 'Miss',
-    };
-  }).filter(Boolean);
-
-  section('Scenario Winners');
+  section('What You Entered');
   doc.autoTable({
     startY: y,
     margin: { left: margin, right: margin },
-    head: [['Scenario', 'Best Action', 'Ticker', 'Vs Mortgage', 'Goal Status', 'Goal Gap']],
-    body: scenarioWinners.map((r) => [
-      titleCase(r.scenario),
-      r.action,
-      r.ticker,
-      fmtSignedMoney(r.deltaAfterTax),
-      r.goalStatus,
-      fmtSignedMoney(r.goalGapAfterTax),
-    ]),
-    styles: { fontSize: 9, cellPadding: 4 },
-    headStyles: { fillColor: [0, 109, 119] },
-  });
-  y = doc.lastAutoTable.finalY + 10;
-
-  const scenarioTop = ['conservative', 'moderate', 'aggressive'].map((scenario) => {
-    const rows = sortedRowsForScenario(latestReport.rows, scenario);
-    return rows.slice(0, 3).map((r) => ({
-      scenario,
-      ticker: r.ticker,
-      projectedAfterTax: r.projectedAfterTax,
-      projectedRealAfterTax: r.projectedRealAfterTax,
-      deltaAfterTax: r.deltaAfterTax,
-      goalGapAfterTax: r.goalGapAfterTax,
-      effectiveAfterTaxAnnual: r.effectiveAfterTaxAnnual,
-    }));
-  }).flat();
-
-  section('Top Ranked Options (After Tax)');
-  doc.autoTable({
-    startY: y,
-    margin: { left: margin, right: margin },
-    head: [['Scenario', 'Ticker', 'After-Tax Annualized', 'Projected Nominal', 'Projected Real', 'Vs Mortgage', 'Goal Gap']],
-    body: scenarioTop.map((r) => [
-      titleCase(r.scenario),
-      r.ticker,
-      fmtPct(r.effectiveAfterTaxAnnual),
-      fmtMoney(r.projectedAfterTax),
-      fmtMoney(r.projectedRealAfterTax),
-      fmtSignedMoney(r.deltaAfterTax),
-      fmtSignedMoney(r.goalGapAfterTax),
-    ]),
-    styles: { fontSize: 9, cellPadding: 4 },
+    head: [['Input', 'Value']],
+    body: [
+      ['Mortgage balance', fmtMoneyRoundedLocal(latestReport.inputs.balance)],
+      ['Mortgage APR', fmtPct(latestReport.inputs.apr)],
+      ['Months left', String(latestReport.inputs.monthsLeft)],
+      ['Amount to allocate now', fmtMoneyRoundedLocal(latestReport.inputs.amount)],
+      ['Mortgage-interest tax break included', latestReport.inputs.deductible ? 'Yes' : 'No'],
+      ['Dividends reinvested', latestReport.assumptions.includeDividends ? 'Yes' : 'No'],
+      ['Inflation used for real-value view', fmtPct(latestReport.assumptions.inflationRate)],
+    ],
+    styles: { fontSize: 10, cellPadding: 5 },
     headStyles: { fillColor: [10, 147, 150] },
+    columnStyles: { 0: { cellWidth: 240 }, 1: { cellWidth: 'auto' } },
   });
-  y = doc.lastAutoTable.finalY + 10;
+  y = doc.lastAutoTable.finalY + 8;
 
-  const activeRows = sortedRowsForScenario(latestReport.rows, latestReport.activeScenario);
-
-  section(`Detailed Breakdown (${titleCase(latestReport.activeScenario)})`);
+  section(`Top 3 Options (${scenarioLabel})`);
   doc.autoTable({
     startY: y,
     margin: { left: margin, right: margin },
-    head: [['Ticker', 'Annual Used', 'After-Tax Annualized', 'Nominal After Tax', 'Real After Tax', 'Vs Mortgage', 'Goal Gap']],
-    body: activeRows.map((r) => [
-      r.ticker,
-      fmtPct(r.annualReturnUsed),
-      fmtPct(r.effectiveAfterTaxAnnual),
-      fmtMoney(r.projectedAfterTax),
-      fmtMoney(r.projectedRealAfterTax),
-      fmtSignedMoney(r.deltaAfterTax),
-      fmtSignedMoney(r.goalGapAfterTax),
+    head: [['Rank', 'Option', 'Projected Value (After Tax)', 'Vs Mortgage']],
+    body: activeRows.slice(0, 3).map((row, idx) => [
+      String(idx + 1),
+      `${row.ticker} (${row.name})`,
+      fmtMoneyRoundedLocal(row.projectedAfterTax),
+      `${row.deltaAfterTax >= 0 ? '+' : '-'}${fmtMoneyRoundedLocal(Math.abs(row.deltaAfterTax))}`,
     ]),
-    styles: { fontSize: 8.5, cellPadding: 3.5 },
+    styles: { fontSize: 10, cellPadding: 5 },
     headStyles: { fillColor: [0, 109, 119] },
   });
-  y = doc.lastAutoTable.finalY + 12;
+  y = doc.lastAutoTable.finalY + 8;
 
-  line('Assumptions & limits: This estimate is not financial advice. It assumes dividend reinvestment when enabled, qualified-dividend taxation on distributions, long-term capital-gains taxation on liquidation when enabled, and static annualized market-condition multipliers. It does not model tax-loss harvesting, transaction costs, expense-ratio drift, or sequence-of-returns simulations.', 9);
+  section('Assumptions (Plain English)');
+  bullet('Returns are long-term historical averages, not guarantees.');
+  bullet('If enabled, dividends are assumed to be reinvested.');
+  bullet('If enabled, long-term capital gains tax is applied when sold at the horizon.');
+  bullet('Inflation is used only to estimate purchasing-power (real) values.');
+  bullet('This is educational planning output, not financial advice.');
 
-  doc.save('bestinvestment-report.pdf');
-  shareStatus.textContent = 'Detailed PDF report downloaded.';
+  doc.save('bestinvestment-simple-report.pdf');
+  shareStatus.textContent = 'Simple PDF report downloaded.';
 }
 
 function runCalculation(evt) {
@@ -927,7 +905,7 @@ function runCalculation(evt) {
   if (invalidTax || invalidCore || invalidRates || invalidInflation || invalidPmi || invalidGoal) {
     mortgageSummary.textContent = 'Check your inputs and try again.';
     quickResult.textContent = '';
-    quickMetrics.textContent = '';
+    quickMetrics.innerHTML = '';
     taxNote.textContent = '';
     mortgageDetail.textContent = '';
     detailsNote.textContent = '';
@@ -951,7 +929,7 @@ function runCalculation(evt) {
   if (!mortgage) {
     mortgageSummary.textContent = 'Unable to build mortgage schedule. Check rate/term values.';
     quickResult.textContent = '';
-    quickMetrics.textContent = '';
+    quickMetrics.innerHTML = '';
     taxNote.textContent = '';
     mortgageDetail.textContent = '';
     detailsNote.textContent = '';
@@ -961,12 +939,13 @@ function runCalculation(evt) {
   const mortgageReal = mortgage.futureValue / Math.pow(1 + inflationRate, years);
   latestMortgageNominal = mortgage.futureValue;
   latestMortgageHurdleAnnual = Math.pow(mortgage.futureValue / amount, 1 / years) - 1;
+  hasExplicitCashoutGoal = hasGoalInput;
   const cashoutGoal = hasGoalInput ? cashoutGoalRaw : mortgage.futureValue;
-  mortgageSummary.textContent = `Mortgage option (cash-flow modeled): ${formatMoney(mortgage.futureValue)} nominal equivalent for ${formatMoney(amount)} over ${monthsLeft} months (${formatPct(mortgage.annualEquivalent)} annualized after tax/PMI effects).`;
+  mortgageSummary.textContent = `If you prepay ${formatMoneyRounded(amount)} now, the model projects about ${formatMoneyRounded(mortgage.futureValue)} by your horizon (${monthsLeft} months).`;
   taxNote.textContent = deductible
-    ? `Mortgage tax assumption: ${formatPct(taxRate)} marginal rate with ${(deductibleShare * 100).toFixed(0)}% deductible share of interest (effective shield ${formatPct(taxShieldRate)}).`
-    : 'Mortgage tax assumption: no mortgage-interest deduction applied.';
-  mortgageDetail.textContent = `Modeled mortgage effects: interest saved ${formatMoney(mortgage.interestSaved)}, PMI saved ${formatMoney(mortgage.pmiSaved)}, payoff accelerated by ${Math.max(mortgage.monthsSaved, 0)} months. Real (inflation-adjusted) mortgage equivalent: ${formatMoney(mortgageReal)}.`;
+    ? `Assumed mortgage tax benefit: effective ${formatPct(taxShieldRate)} interest shield.`
+    : 'No mortgage-interest tax deduction applied in this run.';
+  mortgageDetail.textContent = `Estimated interest saved: ${formatMoneyRounded(mortgage.interestSaved)}. Estimated payoff speed-up: ${Math.max(mortgage.monthsSaved, 0)} months. Inflation-adjusted mortgage path value: ${formatMoneyRounded(mortgageReal)}.`;
 
   latestRows = [];
   assetsData.forEach((asset) => {
@@ -1004,7 +983,7 @@ function runCalculation(evt) {
   });
 
   setActiveScenario(activeScenario);
-  detailsNote.textContent = `Detailed breakdown assumptions: ${includeDividends ? 'dividends reinvested' : 'dividends not reinvested'}, qualified dividend tax ${formatPct(combinedQdivRate)}, LTCG tax ${formatPct(combinedLtcgRate)}${liquidateAtHorizon ? ' with end-of-horizon sale tax' : ' with no end-of-horizon sale tax'}, inflation ${formatPct(inflationRate)}. Stock cash-out target used: ${formatMoney(cashoutGoal)} (${hasGoalInput ? 'user-entered target' : 'defaulted from mortgage-equivalent target because goal was blank/0'}). Break-even after-tax annual return to match mortgage: ${formatPct(latestMortgageHurdleAnnual)}. Tax treatment assumption follows long-term capital gains/qualified-dividend framework (IRS Topic 409 and IRS Publication 550) and mortgage-interest deduction framework (IRS Publication 936).`;
+  detailsNote.textContent = `Assumptions used: ${includeDividends ? 'dividends are reinvested' : 'dividends are not reinvested'}, qualified dividend tax ${formatPct(combinedQdivRate)}, long-term capital gains tax ${formatPct(combinedLtcgRate)}${liquidateAtHorizon ? ' at sale' : ' not applied at sale'}, and inflation ${formatPct(inflationRate)}. Cash-out target used: ${formatMoneyRounded(cashoutGoal)} (${hasGoalInput ? 'your entered target' : 'default mortgage-equivalent target because goal was blank/0'}). Break-even annual return vs mortgage: ${formatPct(latestMortgageHurdleAnnual)}.`;
 
   renderPriorities(flags);
   latestReport = {
