@@ -83,6 +83,7 @@ let latestReport = null;
 let latestMortgageNominal = null;
 let latestMortgageHurdleAnnual = null;
 let hasExplicitCashoutGoal = false;
+let showAllScenarioOptions = false;
 let marketConditionMultipliers = { ...DEFAULT_MARKET_CONDITION_MULTIPLIERS };
 let compactScenarioView = window.matchMedia('(max-width: 700px)').matches;
 
@@ -554,7 +555,9 @@ function renderDetailedBreakdown(rows, scenario) {
 
 function renderScenarioSummary(rows, scenario) {
   const sorted = sortedRowsForScenario(rows, scenario);
-  const top = sorted.slice(0, compactScenarioView ? 2 : 3);
+  const defaultCount = compactScenarioView ? 2 : 3;
+  const visibleCount = showAllScenarioOptions ? sorted.length : Math.min(defaultCount, sorted.length);
+  const top = sorted.slice(0, visibleCount);
   if (!top.length) {
     scenarioResults.innerHTML = '';
     return;
@@ -584,11 +587,20 @@ function renderScenarioSummary(rows, scenario) {
     <div class="scenario-box">
       <div class="scenario-box-head">
         <h4>${title}</h4>
-        <p class="meta">Top ${top.length} easiest wins to compare.</p>
+        <p class="meta">Showing ${top.length} of ${sorted.length} options.</p>
       </div>
       <div class="scenario-list">${items}</div>
+      ${sorted.length > defaultCount ? `<button class="scenario-toggle" type="button">${showAllScenarioOptions ? `Show top ${defaultCount}` : `Show all ${sorted.length} options`}</button>` : ''}
     </div>
   `;
+
+  const toggleBtn = scenarioResults.querySelector('.scenario-toggle');
+  if (toggleBtn) {
+    toggleBtn.addEventListener('click', () => {
+      showAllScenarioOptions = !showAllScenarioOptions;
+      renderScenarioSummary(rows, scenario);
+    });
+  }
 }
 
 function renderQuickResult(rows, scenario) {
@@ -660,6 +672,7 @@ function handleViewportResize() {
   const nextCompact = window.matchMedia('(max-width: 700px)').matches;
   if (nextCompact === compactScenarioView) return;
   compactScenarioView = nextCompact;
+  showAllScenarioOptions = false;
   if (latestRows.length > 0) {
     renderScenarioSummary(latestRows, activeScenario);
   }

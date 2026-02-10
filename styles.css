@@ -295,6 +295,17 @@ input, select, table, fieldset {
   gap: 0.34rem;
 }
 
+.scenario-toggle {
+  margin-top: 0.5rem;
+  width: auto;
+  background: transparent;
+  color: var(--text);
+  border: 1px solid var(--border);
+  padding: 0.35rem 0.55rem;
+  border-radius: 8px;
+  font-size: 0.85rem;
+}
+
 .scenario-chip {
   display: inline-flex;
   align-items: center;
