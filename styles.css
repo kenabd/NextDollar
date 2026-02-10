@@ -111,6 +111,10 @@ form {
   gap: 0.6rem;
 }
 
+form label {
+  display: block;
+}
+
 input, select, button {
   width: 100%;
   border-radius: 8px;

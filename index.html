@@ -72,13 +72,17 @@
         <label for="amount">Amount to allocate now ($)</label>
         <input id="amount" type="number" min="1" step="1" value="1000">
 
+        <label for="investment-years">Investment duration (years)</label>
+        <input id="investment-years" type="number" min="1" max="50" step="0.5" value="5">
+
         <label class="inline-check"><input id="include-dividends" type="checkbox" checked> Include dividends in calculations (reinvested)</label>
         <p class="meta">Quick mode uses smart defaults. Open advanced assumptions only if you want to fine-tune.</p>
 
         <details class="advanced-panel">
           <summary>Advanced Assumptions</summary>
 
-          <label class="inline-check"><input id="deductible" type="checkbox"> Include tax breaks from mortgage interest in calculations</label>
+          <label class="inline-check"><input id="deductible" type="checkbox" checked> Apply mortgage interest tax deduction</label>
+          <p class="meta">Turn this off if you do not claim mortgage interest on taxes.</p>
 
           <div id="tax-inputs" class="hidden">
             <label for="tax-rate">Marginal tax rate (%)</label>
@@ -89,7 +93,7 @@
             <input id="deductible-share-slider" type="range" min="0" max="100" step="1" value="100" aria-label="Deductible share slider">
           </div>
 
-          <label for="mode">Months left input mode</label>
+          <label for="mode">How to enter months left</label>
           <select id="mode">
             <option value="months">Enter months left directly</option>
             <option value="estimate">Estimate from start date</option>
@@ -106,25 +110,22 @@
             <p id="estimated-months" class="meta"></p>
           </div>
 
-          <label for="ltcg-rate">Assumed long-term capital gains tax rate (%)</label>
+          <label for="ltcg-rate">Capital gains tax rate (%)</label>
           <input id="ltcg-rate" type="number" min="0" max="40" step="0.1" value="15">
 
-          <label for="qdiv-rate">Assumed qualified dividend tax rate (%)</label>
+          <label for="qdiv-rate">Dividend tax rate (%)</label>
           <input id="qdiv-rate" type="number" min="0" max="40" step="0.1" value="15">
 
-          <label for="state-tax-rate">Assumed state tax rate on investment income (%)</label>
+          <label for="state-tax-rate">State tax on investments (%)</label>
           <input id="state-tax-rate" type="number" min="0" max="20" step="0.1" value="0">
 
-          <label class="inline-check"><input id="liquidate-horizon" type="checkbox" checked> Apply long-term capital gains tax when selling at horizon</label>
+          <label class="inline-check"><input id="liquidate-horizon" type="checkbox" checked> Tax gains when selling at end of horizon</label>
 
-          <label for="inflation-rate">Expected annual inflation (%) for real-value comparison</label>
+          <label for="inflation-rate">Inflation (%)</label>
           <input id="inflation-rate" type="number" min="-2" max="15" step="0.1" value="2.5">
 
-          <label for="pmi-monthly">Monthly PMI ($, default 0; update only if needed)</label>
+          <label for="pmi-monthly">PMI per month ($)</label>
           <input id="pmi-monthly" type="number" min="0" step="1" value="0">
-
-          <label for="cashout-goal">Optional stock cash-out target at horizon ($)</label>
-          <input id="cashout-goal" type="number" min="0" step="100" value="" placeholder="Blank or 0 = use mortgage-equivalent target">
 
           <fieldset>
             <legend>Priority checks (optional)</legend>
@@ -174,7 +175,6 @@
                 <th>After-Tax Annualized</th>
                 <th>Projected (After Tax)</th>
                 <th>Vs Mortgage (After Tax)</th>
-                <th>Goal Gap (After Tax)</th>
                 <th>Projected Real</th>
                 <th>Vs Mortgage Real</th>
               </tr>
@@ -224,4 +224,3 @@
   <script src="app.js" defer></script>
 </body>
 </html>
-
