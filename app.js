@@ -560,9 +560,9 @@ function renderScenarioSummary(rows, scenario) {
           <span class="scenario-name">${row.name}</span>
         </div>
         <div class="scenario-row-metrics">
-          <span class="scenario-chip">${formatMoney(row.projectedAfterTax)} after tax</span>
-          <span class="scenario-chip ${row.deltaAfterTax >= 0 ? 'is-positive' : 'is-negative'}">${formatSignedMoney(row.deltaAfterTax)} vs mortgage</span>
-          <span class="scenario-chip ${row.goalGapAfterTax >= 0 ? 'is-positive' : 'is-negative'}">${row.goalGapAfterTax >= 0 ? 'Goal hit' : 'Goal miss'} ${formatSignedMoney(row.goalGapAfterTax)}</span>
+          <span class="scenario-chip">After-tax ${formatMoney(row.projectedAfterTax).replace('$', '')}</span>
+          <span class="scenario-chip ${row.deltaAfterTax >= 0 ? 'is-positive' : 'is-negative'}">Vs mortgage ${formatSignedMoney(row.deltaAfterTax)}</span>
+          <span class="scenario-chip ${row.goalGapAfterTax >= 0 ? 'is-positive' : 'is-negative'}">${row.goalGapAfterTax >= 0 ? 'Goal +' : 'Goal -'}${formatMoney(Math.abs(row.goalGapAfterTax)).replace('$', '')}</span>
         </div>
       </div>
     `)
@@ -572,7 +572,7 @@ function renderScenarioSummary(rows, scenario) {
     <div class="scenario-box">
       <div class="scenario-box-head">
         <h4>${title}</h4>
-        <p class="meta">Top ${top.length} of ${sorted.length} options ranked by after-tax gap vs mortgage.</p>
+        <p class="meta">Top ${top.length}/${sorted.length} by after-tax edge vs mortgage.</p>
       </div>
       <div class="scenario-list">${items}</div>
     </div>
@@ -908,6 +908,7 @@ function runCalculation(evt) {
 
   const monthlyPMI = Number(document.getElementById('pmi-monthly').value);
   const cashoutGoalRaw = Number(cashoutGoalInput.value);
+  const cashoutGoalText = String(cashoutGoalInput.value).trim();
 
   const flags = {
     emergency: document.getElementById('emergency').checked,
@@ -920,8 +921,8 @@ function runCalculation(evt) {
   const invalidRates = [ltcgRateRaw, qdivRateRaw, stateTaxRateRaw].some((r) => Number.isNaN(r) || r < 0 || r > 0.5);
   const invalidInflation = Number.isNaN(inflationRate) || inflationRate <= -0.99 || inflationRate > 0.2;
   const invalidPmi = Number.isNaN(monthlyPMI) || monthlyPMI < 0;
-  const hasGoalInput = String(cashoutGoalInput.value).trim() !== '';
-  const invalidGoal = hasGoalInput && (Number.isNaN(cashoutGoalRaw) || cashoutGoalRaw < 0);
+  const hasGoalInput = cashoutGoalText !== '' && Number(cashoutGoalText) > 0;
+  const invalidGoal = cashoutGoalText !== '' && (Number.isNaN(cashoutGoalRaw) || cashoutGoalRaw < 0);
 
   if (invalidTax || invalidCore || invalidRates || invalidInflation || invalidPmi || invalidGoal) {
     mortgageSummary.textContent = 'Check your inputs and try again.';
@@ -1003,7 +1004,7 @@ function runCalculation(evt) {
   });
 
   setActiveScenario(activeScenario);
-  detailsNote.textContent = `Detailed breakdown assumptions: ${includeDividends ? 'dividends reinvested' : 'dividends not reinvested'}, qualified dividend tax ${formatPct(combinedQdivRate)}, LTCG tax ${formatPct(combinedLtcgRate)}${liquidateAtHorizon ? ' with end-of-horizon liquidation tax' : ' with no end-of-horizon liquidation tax'}, inflation ${formatPct(inflationRate)}. Stock cash-out goal used: ${formatMoney(cashoutGoal)} (${hasGoalInput ? 'user-entered' : 'defaulted to mortgage-end equivalent'}). Break-even after-tax annual return to match mortgage: ${formatPct(latestMortgageHurdleAnnual)}. Tax treatment assumption follows long-term capital gains/qualified-dividend framework (IRS Topic 409 and IRS Publication 550) and mortgage-interest deduction framework (IRS Publication 936).`;
+  detailsNote.textContent = `Detailed breakdown assumptions: ${includeDividends ? 'dividends reinvested' : 'dividends not reinvested'}, qualified dividend tax ${formatPct(combinedQdivRate)}, LTCG tax ${formatPct(combinedLtcgRate)}${liquidateAtHorizon ? ' with end-of-horizon sale tax' : ' with no end-of-horizon sale tax'}, inflation ${formatPct(inflationRate)}. Stock cash-out target used: ${formatMoney(cashoutGoal)} (${hasGoalInput ? 'user-entered target' : 'defaulted from mortgage-equivalent target because goal was blank/0'}). Break-even after-tax annual return to match mortgage: ${formatPct(latestMortgageHurdleAnnual)}. Tax treatment assumption follows long-term capital gains/qualified-dividend framework (IRS Topic 409 and IRS Publication 550) and mortgage-interest deduction framework (IRS Publication 936).`;
 
   renderPriorities(flags);
   latestReport = {
