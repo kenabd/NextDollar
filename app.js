@@ -636,6 +636,9 @@ function renderQuickResult(rows, scenario) {
     latestTaxShieldRate > 0
       ? `Mortgage tax break included at effective ${formatPct(latestTaxShieldRate)}.`
       : 'Mortgage tax break not applied.',
+    latestReport && latestReport.mortgage.monthsSaved > 0
+      ? `Mortgage would be paid off about ${latestReport.mortgage.monthsSaved} months sooner with prepay.`
+      : 'No meaningful mortgage payoff acceleration from this prepay amount.',
   ];
   if (latestMortgageHurdleAnnual != null) {
     quickLines.push(`Break-even annual return to beat mortgage: ${formatPct(latestMortgageHurdleAnnual)}.`);
@@ -837,6 +840,7 @@ function handleExportPdf() {
   bullet(`Mortgage path value at horizon: ${fmtMoneyRoundedLocal(latestReport.mortgage.futureValue)}.`);
   bullet(`${best.ticker} value at horizon: ${fmtMoneyRoundedLocal(best.projectedAfterTax)}.`);
   bullet(`${investWins ? best.ticker : 'Mortgage'} leads by ${fmtMoneyRoundedLocal(Math.abs(best.deltaAfterTax))} after tax.`);
+  bullet(`Estimated mortgage payoff acceleration from prepay: ${latestReport.mortgage.monthsSaved} months.`);
   bullet(latestReport.inputs.deductible
     ? `Mortgage-interest tax break is included (effective shield: ${fmtPct(latestReport.assumptions.taxShieldRate)}).`
     : 'Mortgage-interest tax break is not included in this run.');
@@ -911,7 +915,8 @@ function handleExportPdf() {
 
   section('Assumptions');
   bullet('Returns are long-term historical averages and can differ from future results.');
-  bullet('Mortgage comparison includes monthly cash-flow modeling and optional mortgage-interest tax deduction.');
+  bullet('Mortgage comparison uses month-by-month amortization, including changing interest/principal mix and earlier payoff effects.');
+  bullet('Mortgage-interest tax deduction is included when enabled.');
   bullet('Investment results include taxes from your selected tax rates and optional end-of-horizon sale tax.');
   bullet('Inflation is used to show real (purchasing-power adjusted) values.');
   bullet('Educational use only; not financial advice.');
@@ -1008,7 +1013,7 @@ function runCalculation(evt) {
   taxNote.textContent = deductible
     ? `Assumed mortgage tax benefit: effective ${formatPct(taxShieldRate)} interest shield.`
     : 'No mortgage-interest tax deduction applied in this run.';
-  mortgageDetail.textContent = `Estimated interest saved: ${formatMoneyRounded(mortgage.interestSaved)}. Estimated payoff speed-up: ${Math.max(mortgage.monthsSaved, 0)} months. Inflation-adjusted mortgage path value: ${formatMoneyRounded(mortgageReal)}.`;
+  mortgageDetail.textContent = `Estimated interest saved: ${formatMoneyRounded(mortgage.interestSaved)}. Estimated payoff speed-up: ${Math.max(mortgage.monthsSaved, 0)} months. Inflation-adjusted mortgage path value: ${formatMoneyRounded(mortgageReal)}. This uses month-by-month amortization, so as balance drops, each payment naturally shifts from interest toward principal.`;
 
   latestRows = [];
   assetsData.forEach((asset) => {
@@ -1045,7 +1050,7 @@ function runCalculation(evt) {
   });
 
   setActiveScenario(activeScenario);
-  detailsNote.textContent = `Assumptions used: ${includeDividends ? 'dividends are reinvested' : 'dividends are not reinvested'}, qualified dividend tax ${formatPct(combinedQdivRate)}, long-term capital gains tax ${formatPct(combinedLtcgRate)}${liquidateAtHorizon ? ' at sale' : ' not applied at sale'}, inflation ${formatPct(inflationRate)}, and horizon ${formatYears(years)}. Break-even annual return vs mortgage: ${formatPct(latestMortgageHurdleAnnual)}.`;
+  detailsNote.textContent = `Assumptions used: ${includeDividends ? 'dividends are reinvested' : 'dividends are not reinvested'}, qualified dividend tax ${formatPct(combinedQdivRate)}, long-term capital gains tax ${formatPct(combinedLtcgRate)}${liquidateAtHorizon ? ' at sale' : ' not applied at sale'}, inflation ${formatPct(inflationRate)}, and horizon ${formatYears(years)}. Mortgage side is modeled month-by-month (interest + principal split each month), including earlier payoff effects from prepay. Break-even annual return vs mortgage: ${formatPct(latestMortgageHurdleAnnual)}.`;
 
   renderPriorities(flags);
   latestReport = {
