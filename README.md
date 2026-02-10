@@ -21,6 +21,7 @@ Static web app for deciding where to put your next dollar: mortgage prepayment v
   - Conservative / Moderate / Aggressive projection rates
   - Scenarios represent market-condition multipliers applied to the same asset list
   - Baseline uses 50-year annualized averages (highlighted in UI)
+  - Quick decision summary includes goal hit/miss and break-even after-tax annual return needed to match mortgage
   - Optional dividend handling toggle (included/reinvested by default)
   - Baseline series are total return (dividends included); turning dividends off applies an approximate yield subtraction
   - After-tax investment comparison using assumed long-term capital gains tax rate
@@ -93,7 +94,7 @@ After deployment:
 
 ## Online return data refresh
 
-- `scripts/fetch_returns.py` pulls Damodaran historical annual returns, computes a rolling 50-year annualized baseline, then scales conservative/moderate/aggressive using Schwab allocation profiles.
+- `scripts/fetch_returns.py` pulls Damodaran historical annual returns, computes a rolling 50-year annualized baseline, and writes market-condition multipliers plus scenario projections using Schwab allocation profiles.
 - Workflow `.github/workflows/refresh-data.yml` runs weekly (Monday) and commits refreshed data.
 
 Primary sources:

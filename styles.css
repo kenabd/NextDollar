@@ -217,27 +217,98 @@ input, select, table, fieldset {
 .scenario-box {
   border: 1px solid var(--border);
   border-radius: 10px;
-  padding: 0.6rem;
+  padding: 0.65rem;
   margin-bottom: 0.6rem;
 }
 
+.scenario-box-head {
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+  gap: 0.5rem;
+}
+
 .scenario-box h4 {
-  margin: 0 0 0.4rem;
+  margin: 0;
 }
 
-.scenario-box ol {
-  margin: 0.2rem 0 0;
-  padding-left: 1.1rem;
+.scenario-box-head .meta {
+  margin: 0;
+  font-size: 0.84rem;
 }
 
-.scenario-box li {
-  margin: 0.32rem 0;
-  line-height: 1.35;
+.scenario-list {
+  margin-top: 0.45rem;
+  display: grid;
+  gap: 0.46rem;
+}
+
+.scenario-row {
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  padding: 0.46rem 0.5rem;
+  background: rgba(10, 147, 150, 0.06);
+}
+
+[data-theme="dark"] .scenario-row {
+  background: rgba(32, 178, 170, 0.08);
+}
+
+.scenario-row-title {
+  display: flex;
+  align-items: center;
+  gap: 0.36rem;
+  margin-bottom: 0.32rem;
+  line-height: 1.2;
+}
+
+.scenario-rank {
+  color: var(--muted);
+  font-size: 0.82rem;
+}
+
+.scenario-ticker {
+  font-weight: 700;
+  letter-spacing: 0.01em;
+}
+
+.scenario-name {
+  font-size: 0.84rem;
+  color: var(--muted);
+}
+
+.scenario-row-metrics {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.32rem;
+}
+
+.scenario-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.22rem;
+  font-size: 0.8rem;
+  line-height: 1.25;
+  border: 1px solid var(--border);
+  border-radius: 999px;
+  padding: 0.18rem 0.45rem;
+  background: var(--card);
+}
+
+.is-positive {
+  border-color: color-mix(in srgb, var(--accent-2) 60%, var(--border) 40%);
+}
+
+.is-negative {
+  border-color: color-mix(in srgb, #e76f51 60%, var(--border) 40%);
 }
 
 .scenario-box ol,
 .scenario-box li,
+.scenario-list,
+.scenario-row,
 .quick-result,
+.quick-metrics,
 .meta,
 td,
 th {
@@ -282,6 +353,10 @@ th {
   border-radius: 8px;
   padding: 0.55rem 0.65rem;
   font-weight: 600;
+}
+
+.quick-metrics {
+  margin: 0.45rem 0 0.2rem;
 }
 
 .advanced-panel {
@@ -359,9 +434,28 @@ th {
     font-size: 0.92rem;
   }
 
-  .scenario-box ol {
-    margin: 0.25rem 0 0;
-    padding-left: 1rem;
+  .quick-metrics {
+    font-size: 0.84rem;
+    margin-top: 0.35rem;
+  }
+
+  .scenario-box-head {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 0.2rem;
+  }
+
+  .scenario-row {
+    padding: 0.4rem 0.44rem;
+  }
+
+  .scenario-name {
+    font-size: 0.8rem;
+  }
+
+  .scenario-chip {
+    font-size: 0.75rem;
+    padding: 0.15rem 0.38rem;
   }
 
   .theme-toggle-floating {

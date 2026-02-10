@@ -115,6 +115,11 @@ def main() -> None:
     payload = {
         "source_as_of": date.today().isoformat(),
         "methodology": f"50-year annualized historical averages ({start_year}-{end_year}) from Aswath Damodaran historical total returns (dividends included). Conservative/Moderate/Aggressive are scaled using Schwab allocation profiles (Conservative 20/50/30, Moderate 60/35/5, Aggressive 95/0/5 for stocks/bonds/cash).",
+        "market_condition_multipliers": {
+            "conservative": round(conservative_mult, 4),
+            "moderate": 1.0,
+            "aggressive": round(aggressive_mult, 4),
+        },
         "sources": [DAMODARAN_URL, SCHWAB_URL],
         "assets": assets,
     }

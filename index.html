@@ -72,7 +72,7 @@
         <label for="amount">Amount to allocate now ($)</label>
         <input id="amount" type="number" min="1" step="1" value="1000">
 
-        <label for="cashout-goal">Stock cash-out goal at mortgage end ($, optional)</label>
+        <label for="cashout-goal">Stock cash-out goal at mortgage end ($, optional; default = mortgage equivalent)</label>
         <input id="cashout-goal" type="number" min="0" step="100" value="">
 
         <label class="inline-check"><input id="include-dividends" type="checkbox" checked> Include dividends in calculations (reinvested)</label>
@@ -81,7 +81,7 @@
         <details class="advanced-panel">
           <summary>Advanced Assumptions</summary>
 
-          <label class="inline-check"><input id="deductible" type="checkbox"> Include tax breaks from mortgage interes in calculations</label>
+          <label class="inline-check"><input id="deductible" type="checkbox"> Include tax breaks from mortgage interest in calculations</label>
 
           <div id="tax-inputs" class="hidden">
             <label for="tax-rate">Marginal tax rate (%)</label>
@@ -146,6 +146,7 @@
       </div>
       <p id="share-status" class="meta"></p>
       <p id="quick-result" class="quick-result"></p>
+      <p id="quick-metrics" class="meta quick-metrics"></p>
       <p id="mortgage-summary"></p>
       <p id="tax-note" class="meta"></p>
       <p id="mortgage-detail" class="meta"></p>
@@ -169,6 +170,7 @@
                 <th>After-Tax Annualized</th>
                 <th>Projected (After Tax)</th>
                 <th>Vs Mortgage (After Tax)</th>
+                <th>Goal Gap (After Tax)</th>
                 <th>Projected Real</th>
                 <th>Vs Mortgage Real</th>
               </tr>
